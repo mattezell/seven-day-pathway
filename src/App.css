@@ -1542,3 +1542,47 @@ code {
   font-size: 0.85rem;
   line-height: 1.45;
 }
+
+/* Demo chrome, stripped on a phone.
+ *
+ * On a laptop the framing above the tabs explains what this is to someone who
+ * arrived cold. On a phone, in the hallway, it is all in the way: the connector
+ * has already decided to use this and needs the first tap to be the work. So
+ * everything above the tabs and the colophon below the panels come off.
+ *
+ * The page title stays in the accessibility tree rather than being removed, so
+ * the document still has a heading to land on. The confirmation language is not
+ * lost with the colophon: each program card carries its own "confirm with the
+ * program directly" line with the read date, which is the point in the flow
+ * where it actually matters.
+ */
+@media (max-width: 620px) {
+  /* Visually gone, still announced. display:none would take the page's only
+     h1 out of the accessibility tree along with it. */
+  .masthead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .standfirst,
+  .picker,
+  .colophon {
+    display: none;
+  }
+
+  .subnav {
+    margin-top: 0;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--paper);
+    padding-top: 0.4rem;
+  }
+}
