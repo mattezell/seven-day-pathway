@@ -86,15 +86,40 @@ const PROGRAM_CUES: Record<string, string[]> = {
 };
 
 function normalize(text: string): string {
-  // Escaped rather than literal so this file stays pure ASCII on disk.
-  return text.toLowerCase().replace(/[\u2018\u2019]/g, "'").replace(/\s+/g, ' ');
+  // Apostrophes go away entirely on both sides of the comparison, so "aint got
+  // a ride" and "ain't got a ride" are the same string. People type fast with
+  // their thumbs and the curly-quote variants are escaped rather than literal
+  // so this file stays pure ASCII on disk.
+  return text
+    .toLowerCase()
+    .replace(/[\u2018\u2019']/g, '')
+    .replace(/\s+/g, ' ');
 }
 
-/** The sentence a cue appeared in, so the connector can see the reasoning. */
-function sentenceContaining(text: string, cue: string): string {
-  const sentences = text.split(/(?<=[.!?\n])\s+/);
-  const hit = sentences.find((s) => normalize(s).includes(cue));
-  return (hit ?? text).trim().replace(/\s+/g, ' ').slice(0, 160);
+/**
+ * The connector's own words that triggered a match, with a little room on
+ * either side.
+ *
+ * Quoting the whole note back is not evidence. People type one long run-on
+ * sentence, and three chips all citing the same eighty words tells the
+ * connector nothing about which part did what.
+ */
+function evidenceFor(notes: string, cue: string): string {
+  const escaped = cue
+    .split(/\s+/)
+    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/'/g, "'?"));
+  const match = new RegExp(escaped.join('\\s+'), 'i').exec(notes);
+  if (!match) return cue;
+
+  const WINDOW = 22;
+  let start = Math.max(0, match.index - WINDOW);
+  let end = Math.min(notes.length, match.index + match[0].length + WINDOW);
+  // Do not cut a word in half; back off to the nearest space.
+  if (start > 0) start = notes.indexOf(' ', start) + 1 || start;
+  if (end < notes.length) end = notes.lastIndexOf(' ', end) + 1 || end;
+
+  const quoted = notes.slice(start, end).trim().replace(/\s+/g, ' ');
+  return `${start > 0 ? '...' : ''}${quoted}${end < notes.length ? '...' : ''}`;
 }
 
 export function readNotes(notes: string, registry: ProgramRegistry): Reading {
@@ -102,16 +127,16 @@ export function readNotes(notes: string, registry: ProgramRegistry): Reading {
   const heard: Heard[] = [];
 
   for (const fact of SITUATION_FACTS) {
-    const cue = (FACT_CUES[fact.id] ?? []).find((c) => haystack.includes(c));
+    const cue = (FACT_CUES[fact.id] ?? []).find((c) => haystack.includes(normalize(c)));
     if (cue) {
-      heard.push({ factId: fact.id, label: fact.label, becauseTheySaid: sentenceContaining(notes, cue) });
+      heard.push({ factId: fact.id, label: fact.label, becauseTheySaid: evidenceFor(notes, cue) });
     }
   }
 
   let programId: string | null = null;
   let programBecause: string | null = null;
   for (const [id, cues] of Object.entries(PROGRAM_CUES)) {
-    const cue = cues.find((c) => haystack.includes(c));
+    const cue = cues.find((c) => haystack.includes(normalize(c)));
     if (!cue) continue;
     const candidate = registry.programs.find((p: Program) => p.id === id);
     if (!candidate || !translationStatus(candidate).canTranslate) continue;

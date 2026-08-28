@@ -23,10 +23,15 @@ test('every match names the words that produced it', () => {
   const notes = 'She takes the bus everywhere. Gets food stamps. Wants to fix computers.';
   const reading = readNotes(notes, registry);
   for (const heard of reading.heard) {
-    assert.ok(heard.becauseTheySaid.trim().length > 0, `${heard.factId} matched without evidence`);
+    const quoted = heard.becauseTheySaid.replace(/^\.\.\.|\.\.\.$/g, '').trim();
+    assert.ok(quoted.length > 0, `${heard.factId} matched without evidence`);
     assert.ok(
-      notes.toLowerCase().includes(heard.becauseTheySaid.toLowerCase().slice(0, 20)),
-      `${heard.factId} cited words that are not in the notes`,
+      notes.toLowerCase().includes(quoted.toLowerCase()),
+      `${heard.factId} cited words that are not in the notes: "${quoted}"`,
+    );
+    assert.ok(
+      quoted.length < notes.length,
+      `${heard.factId} quoted the whole note back instead of the words that matched`,
     );
   }
   assert.equal(reading.programId, 'JSCC-APLUS');
@@ -68,4 +73,23 @@ test('every fact the reader can emit is a fact the script knows how to use', () 
   for (const id of reading.factIds) assert.ok(known.has(id), `${id} is not a situation fact`);
   const program = registry.programs.find((p) => p.id === reading.programId)!;
   assert.ok(buildScript(program, reading.factIds), 'the reader produced facts the script rejected');
+});
+
+test('each chip cites the part of the note that produced it, not the whole note', () => {
+  const notes =
+    'kid wants to get into computers, works days at the warehouse, no car, mom says money is tight';
+  const reading = readNotes(notes, registry);
+  assert.equal(reading.heard.length, 3);
+  const quotes = reading.heard.map((h) => h.becauseTheySaid);
+  assert.equal(new Set(quotes).size, 3, 'three chips gave the same quote');
+  for (const q of quotes) {
+    assert.ok(q.length < notes.length, `quoted the whole note: "${q}"`);
+  }
+});
+
+test('thumbs skip apostrophes, and the reader still hears it', () => {
+  const withApostrophe = readNotes("she aint got a ride and doesn't have a computer", registry);
+  const without = readNotes('she aint got a ride and doesnt have a computer', registry);
+  assert.deepEqual(new Set(withApostrophe.factIds), new Set(['no_car', 'no_computer']));
+  assert.deepEqual(without.factIds, withApostrophe.factIds);
 });

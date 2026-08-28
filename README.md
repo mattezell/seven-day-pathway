@@ -173,7 +173,14 @@ screen opens with a box: **type what you remember, in your words.**
 > tight
 
 That sets the program to IT Help Desk and lights three chips, and then it **shows its
-work**: each chip names the words in his own notes that produced it. It also names what
+work**: each chip quotes the part of his own note that produced it, windowed to the
+matched phrase rather than the whole note.
+
+> **Already working days** because you wrote "...get into computers, works days at the
+> warehouse, no..."
+
+Apostrophes are normalized away on both sides, because "aint got a ride" is what actually
+gets typed with thumbs. It also names what
 the notes did *not* settle, as questions rather than assumptions:
 
 - Do they have a computer and internet at home that holds up for three hours?
@@ -294,7 +301,7 @@ src/components/PlanView      per-profile plan, "show the working"
 src/components/NavigatorView caseload aggregate
 test/planner.test.ts         27 tests
 test/hallway.test.ts         17 tests, including the reading-level gate
-test/listen.test.ts          7 tests, including what it must refuse to route to
+test/listen.test.ts          9 tests, including what it must refuse to route to
 ```
 
 The planner is a set of named rules in one reviewable file. Each rule states its own
@@ -343,7 +350,7 @@ git clone https://github.com/mattezell/seven-day-pathway
 cd seven-day-pathway
 npm install
 npm run dev      # http://localhost:5173/#PROF-04
-npm test         # 51 tests
+npm test         # 53 tests
 npm run build
 ```
 
@@ -370,7 +377,7 @@ npm run build
   is enforced by test rather than by hand.
 - Five funding paths are listed with the deciding office named on each, and the two that
   could not be fully verified are labeled as such.
-- 51 tests pass. Typecheck and lint clean.
+- 53 tests pass. Typecheck and lint clean.
 
 ## Known limitations and simulated elements
 
