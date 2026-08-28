@@ -26,6 +26,34 @@ body {
   background: var(--paper);
   color: var(--ink);
   font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Taps should feel like taps: no grey flash, no double-tap zoom delay, and a
+   slight press so a thumb knows it landed. Buttons only; links keep their
+   browser behaviour. */
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button:active {
+  transform: scale(0.985);
+}
+
+/* One focus ring everywhere, visible on the paper and on white cards, shown
+   only for keyboard focus so mouse and touch stay quiet. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:active {
+    transform: none;
+  }
 }
 
 .shell {
