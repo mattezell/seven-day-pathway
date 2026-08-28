@@ -300,6 +300,9 @@ src/lib/planner.ts           the rule engine (barriers, options, ordering, colli
 src/lib/hallway.ts           the three beats: plain card, script, handoff message
 src/lib/listen.ts            free-text notes to chips, with the matched words shown
 src/lib/voice.ts             dictation into the notes box, and what it costs in privacy
+scripts/research-program.mjs draft a registry entry from a program URL
+scripts/lib/verify-quotes.mjs every drafted quote checked against the fetched page
+research/                    drafts awaiting human review, never loaded by the app
 src/lib/csv.ts               CSV reader
 src/components/HallwayView   the phone-shaped primary screen
 src/components/ConnectorView the four-question brief
@@ -310,6 +313,7 @@ test/planner.test.ts         27 tests
 test/hallway.test.ts         17 tests, including the reading-level gate
 test/listen.test.ts          9 tests, including what it must refuse to route to
 test/voice.test.ts           3 tests on the dictation seam
+test/research.test.ts        5 tests, mostly on catching fabricated quotes
 ```
 
 The planner is a set of named rules in one reviewable file. Each rule states its own
@@ -321,6 +325,39 @@ UI above the options so a user can disagree with it:
 > program whose stated destination most closely matches the goal in the profile, then
 > the one that addresses the most of the profile's stated barriers, then the one with
 > the earliest cohort a person could still join.
+
+### The research tool: Claude drafts, the machine verifies
+
+Five programs read by hand does not scale, and "someone reads every page forever" is not
+an answer for a connector network spanning 99 neighborhoods. So the same job runs as a
+tool in the repo:
+
+```bash
+node scripts/research-program.mjs <program-url> [--id PROGRAM-ID]
+```
+
+It fetches the page, Claude drafts a registry entry from it, and then **every quote the
+model produced is checked, character for character, against the text that was actually
+fetched.** A quote that is not on the page fails the run and the draft is marked
+`rejected_unverifiable_quotes`. The model is not trusted to be accurate. It is required to
+be checkable, and then it is checked.
+
+Nothing here writes to `public/data/programs.json`. Drafts land in `research/` marked
+`quotes_verified_pending_human_review`, because a person still decides what a connector is
+allowed to repeat.
+
+**It was run live during the build window** on a sixth program, Jefferson State's Data
+Analytics: Power BI course. Nine of nine quotes verified, and it found a problem nobody
+had looked for: **the same page names two different Microsoft certification exams for the
+same course**, DA-100 in the introduction and PL-300 in the certification section, with no
+indication which is current. Confirmed by hand afterward: each code appears exactly once
+on the page. It also declined to state a tuition figure, because the page publishes none,
+and raised five `incomplete` flags instead of filling the gaps. The draft is committed at
+[research/JSCC-DATA.json](research/JSCC-DATA.json).
+
+The tests that matter here are the negative ones. `test/research.test.ts` feeds the
+verifier fabricated quotes and asserts every one is caught, and asserts that no field
+which claims to quote a page escapes checking.
 
 ### How Claude was used to build it
 
@@ -340,11 +377,18 @@ UI above the options so a user can disagree with it:
 
 ### How Claude appears in the result
 
-It does not. The deployed app is static and runs no model. Claude's contribution is the
-provenance-carrying registry and the rule engine, both of which are readable artifacts a
-person can check. That was a deliberate choice: for a tool whose entire value is that its
-claims are auditable, a runtime that generates fresh prose about someone's eligibility
-would undercut the point.
+**Not in the words a connector says.** The deployed app is static and calls no model. The
+plain speech, the script, and the funding routes all come from the registry, where each
+one carries the published sentence it came from. For a tool whose entire value is that its
+claims are auditable, generating fresh prose about a real person's eligibility at the
+moment of use would undercut the whole thing.
+
+**In building and maintaining the registry, under verification.** That is where the model
+earns its place, and `scripts/research-program.mjs` is that work made repeatable: Claude
+reads the page and drafts the entry, the script proves every quote against the source, and
+a human approves before it reaches a connector.
+
+The dividing line is the design: **the model reads and drafts, the registry speaks.**
 
 ## Working artifact
 
@@ -358,7 +402,7 @@ git clone https://github.com/mattezell/seven-day-pathway
 cd seven-day-pathway
 npm install
 npm run dev      # http://localhost:5173/#PROF-04
-npm test         # 56 tests
+npm test         # 61 tests
 npm run build
 ```
 
@@ -385,7 +429,9 @@ npm run build
   is enforced by test rather than by hand.
 - Five funding paths are listed with the deciding office named on each, and the two that
   could not be fully verified are labeled as such.
-- 56 tests pass. Typecheck and lint clean.
+- The research tool runs end to end against a live page, verifies its own quotes, and
+  found a contradiction in a sixth program during the build window.
+- 61 tests pass. Typecheck and lint clean.
 
 ## Known limitations and simulated elements
 
