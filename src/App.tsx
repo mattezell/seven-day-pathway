@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ProgramRegistry, SyntheticProfile } from './types';
 import { loadProfiles, loadRegistry } from './lib/load';
 import { buildConnectorBrief, buildPlan } from './lib/planner';
+import HallwayView from './components/HallwayView';
 import ConnectorView from './components/ConnectorView';
 import PlanView from './components/PlanView';
 import NavigatorView from './components/NavigatorView';
@@ -12,10 +13,16 @@ import './App.css';
  * `#PROF-04` is the connector brief; `#PROF-04/detail` is the full working-out
  * behind it; `#organizer` is the caseload view.
  */
-function readHash(): { view: string; detail: boolean } {
+type Section = 'hallway' | 'brief' | 'detail';
+
+function readHash(): { view: string; section: Section } {
   const raw = window.location.hash.replace(/^#/, '') || 'PROF-04';
   const [view, section] = raw.split('/');
-  return { view: view || 'PROF-04', detail: section === 'detail' };
+  const known: Section[] = ['hallway', 'brief', 'detail'];
+  return {
+    view: view || 'PROF-04',
+    section: known.includes(section as Section) ? (section as Section) : 'hallway',
+  };
 }
 
 export default function App() {
@@ -124,17 +131,22 @@ export default function App() {
       ) : plan ? (
         <>
           <nav className="subnav">
-            <a href={`#${route.view}`} className={!route.detail ? 'active' : ''}>
-              What to say
+            <a href={`#${route.view}`} className={route.section === 'hallway' ? 'active' : ''}>
+              In the hallway
             </a>
-            <a href={`#${route.view}/detail`} className={route.detail ? 'active' : ''}>
+            <a href={`#${route.view}/brief`} className={route.section === 'brief' ? 'active' : ''}>
+              The full brief
+            </a>
+            <a href={`#${route.view}/detail`} className={route.section === 'detail' ? 'active' : ''}>
               Show the working
             </a>
           </nav>
-          {route.detail ? (
+          {route.section === 'detail' ? (
             <PlanView plan={plan} />
-          ) : (
+          ) : route.section === 'brief' ? (
             <ConnectorView plan={plan} brief={brief} registry={registry} />
+          ) : (
+            <HallwayView plan={plan} registry={registry} />
           )}
         </>
       ) : null}

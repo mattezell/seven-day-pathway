@@ -957,3 +957,274 @@ code {
   color: var(--ink-faint);
   font-weight: 600;
 }
+
+/* The hallway: phone-shaped, one column, big targets */
+
+.phone {
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.beats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.beat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  min-height: 62px;
+}
+
+.beat.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.beat-n {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ink-faint);
+}
+
+.beat.active .beat-n {
+  color: var(--accent);
+}
+
+.beat-label {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.beat-sub {
+  font-size: 0.7rem;
+  color: var(--ink-faint);
+  line-height: 1.2;
+}
+
+.whatyouknow {
+  background: var(--card);
+  border: 1px dashed var(--ink-faint);
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.whatyouknow summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.chip-count {
+  color: var(--ink-faint);
+  font-weight: 400;
+  font-size: 0.82rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+}
+
+.chip {
+  font: inherit;
+  font-size: 0.86rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.chips-note {
+  margin: 0.7rem 0 0;
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+.beat-body {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+}
+
+.beat-body h3 {
+  border: none;
+  padding: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.timer {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--ink-faint);
+}
+
+.plain {
+  margin: 0.8rem 0 0;
+}
+
+.plain dt {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--ink-faint);
+  margin-top: 0.8rem;
+}
+
+.plain dd {
+  margin: 0.15rem 0 0;
+  font-size: 1rem;
+}
+
+.plain ul {
+  margin: 0.2rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.stops-head {
+  margin-top: 1.2rem;
+  color: var(--warn);
+}
+
+.stops {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.95rem;
+}
+
+.stops li {
+  margin-bottom: 0.55rem;
+}
+
+.confirm-flag {
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+  background: var(--warn-soft);
+  border-left: 3px solid var(--warn);
+  border-radius: 4px;
+  padding: 0.6rem 0.75rem;
+}
+
+.script-lines {
+  margin-top: 0.8rem;
+}
+
+.script-lines p {
+  font-size: 1.12rem;
+  line-height: 1.55;
+  margin: 0 0 0.85rem;
+}
+
+.the-ask {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 0.8rem 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.ask-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--accent);
+  margin: 0 0 0.3rem;
+}
+
+.ask-text {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.tips {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.tips summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.tips ul {
+  margin: 0.6rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.tips li {
+  margin-bottom: 0.5rem;
+}
+
+.grade {
+  margin: 1rem 0 0;
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}
+
+.share-button.big {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+  margin: 0.8rem 0;
+  min-height: 52px;
+}
+
+.message {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.85rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  margin: 0;
+}
+
+@media (max-width: 460px) {
+  .beats {
+    grid-template-columns: 1fr;
+  }
+
+  .beat {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.5rem;
+    min-height: 0;
+  }
+}
