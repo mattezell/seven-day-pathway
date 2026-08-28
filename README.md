@@ -1,4 +1,4 @@
-# Seven-Day Pathway
+# Seven-Day Pathway (Team 3B, Pathfinders)
 
 **Birmingham Claude Impact Lab, August 28, 2026. Challenge 3: Make Economic Opportunity Easier to Reach.**
 
@@ -17,8 +17,8 @@ not answer a question, it emits the question instead of a guess.
 
 ## Team
 
-- **Team name:** TBD
-- **Team ID:** TBD
+- **Team name:** Pathfinders
+- **Team ID:** 3B
 - **Team members:** Matt Ezell
 
 ## Challenge and primary user
