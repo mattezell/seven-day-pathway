@@ -28,6 +28,36 @@ not answer a question, it emits the question instead of a guess.
   association officer, a pastor, a barber, a librarian) and the staffed kind (a
   resource navigator or workforce staffer at a partner organization).
 
+### The connector we designed for
+
+Bruce is an illustrative persona, not a real individual and not part of the synthetic
+dataset. He is late twenties to early thirties, born to the community he serves. He
+went through leadership training and, unlike many of the people he grew up with, he
+stayed, and he spends his time building up the people around him. He is loosely
+attached to a larger community-minded organization.
+
+Three things about Bruce set the design:
+
+**His credibility is generational, not positional.** Nobody appointed Bruce. People
+listen to him because they have known him their whole lives. When he vouches for a
+program he is spending trust built over decades, on behalf of people he will see again
+at church on Sunday. That is why "This one could cost you" is a headline section rather
+than a footnote, and why a program whose status cannot be confirmed is shown and
+explained rather than quietly dropped.
+
+**He has the leadership training. He does not have the facts.** Bruce already knows how
+to have the conversation. He does not need a tool that coaches him on how to talk to
+people, and would rightly resent one. He needs to know what is true today. So the tool
+supplies facts, sources, and limits, and stays entirely out of the human part.
+
+**He works from a phone and passes things on by message.** Not by sending a link to a
+web app and hoping. That is why the brief exports as plain text, with the read date and
+the limits written into the message body, so the caveats survive the forward.
+
+His organizational attachment matters too: it means the organizer view has a real
+audience. What Bruce learns across many conversations is exactly what his organization
+needs in order to argue for something.
+
 ## Problem and repeated workflow
 
 The repeated moment is **"someone just asked me what they should do."**
