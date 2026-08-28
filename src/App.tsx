@@ -82,7 +82,7 @@ export default function App() {
     <main className="shell">
       <header className="masthead">
         <div>
-          <h1>Seven-Day Pathway</h1>
+          <h1>Upskiller</h1>
           <p className="tagline">
             For the person everyone already asks. What you can say today about technology reskilling
             in Birmingham, what is not yours to promise, and who to hand them to.

@@ -1,4 +1,9 @@
-# Seven-Day Pathway (Team 3B, Pathfinders)
+# Upskiller (Team 3B, Pathfinders)
+
+Product name: **Upskiller**. Repository and domain retain the working name
+seven-day-pathway, after the plan at the core of the tool: no class starts within
+seven days, but every step that decides whether a person ever starts happens in the
+next seven.
 
 **Birmingham Claude Impact Lab, August 28, 2026. Challenge 3: Make Economic Opportunity Easier to Reach.**
 
