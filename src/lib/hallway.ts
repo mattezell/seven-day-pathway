@@ -64,6 +64,13 @@ export const SITUATION_FACTS: SituationFact[] = [
       'This class meets online, live, twice a week for three hours. A phone will not carry that. Solve the computer and the internet first, or this pathway will fail in week two and it will look like they gave up.',
   },
   {
+    id: 'works_nights',
+    label: 'Works nights',
+    opensPaths: [],
+    warning:
+      'This class meets at night, and so does their shift. Those are the same hours. Get their exact work schedule before anything else, because a night class solves the day worker and quietly fails the night worker.',
+  },
+  {
     id: 'works_days',
     label: 'Already working days',
     opensPaths: [],

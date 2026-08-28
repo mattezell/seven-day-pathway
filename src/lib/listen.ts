@@ -43,15 +43,22 @@ const FACT_CUES: Record<string, string[]> = {
     'money is tight', 'money tight', 'cannot afford', "can't afford", 'no money',
     'broke', 'tight on money', 'expensive', 'too much money', 'cost too much',
     'struggling', 'behind on rent', 'paycheck to paycheck',
+    // From the first recorded interview: money trouble arrives as idiom and as
+    // sentences about someone else paying, not as the word "afford".
+    "ain't enough", 'aint enough', 'not enough money', 'have to cover it',
+    'somebody else is going to have to', "can't pay", 'cannot pay', 'got to be later',
   ],
   no_car: [
     'no car', "doesn't have a car", 'does not have a car', 'no ride', "ain't got a ride",
     'no transportation', 'takes the bus', 'rides the bus', 'no license', 'car broke down',
     'hard to get around', 'lives in huntsville', 'lives out of town', 'far out',
+    "don't have a car", 'do not have a car', 'without a car', 'no bus',
   ],
   no_computer: [
     'no computer', 'no laptop', 'no internet', 'no wifi', "doesn't have a computer",
     'does not have a computer', 'only has a phone', 'just has a phone', 'phone only',
+    "my phone that's it", 'just my phone', 'just got my phone', 'data runs out',
+    'runs out of data', "don't have a computer",
   ],
   works_days: [
     'works days', 'works during the day', 'day shift', 'first shift', 'has a job',
@@ -61,9 +68,16 @@ const FACT_CUES: Record<string, string[]> = {
   no_diploma: [
     'no diploma', 'no ged', 'did not finish', "didn't finish", 'dropped out',
     'never graduated', 'no high school', 'working on their ged', 'occupational diploma',
+    // "I've been meaning to get my GED" means they do not have one.
+    'get my ged', 'get her ged', 'get his ged', 'get their ged',
+    'through the 11th', 'through the 10th', 'through 11th grade', 'through 10th grade',
   ],
   on_snap: ['snap', 'food stamps', 'ebt', 'food assistance', 'wic'],
   veteran: ['veteran', 'was in the army', 'was in the navy', 'served', 'military', 'vet'],
+  works_nights: [
+    'works nights', 'work nights', 'working nights', 'night shift', 'third shift',
+    'overnight shift', 'overnights', 'off at 2 in the morning',
+  ],
   disability: [
     'disability', 'disabled', 'health condition', 'bad back', 'injured', 'on ssi',
     'cannot stand', "can't stand", 'chronic',
