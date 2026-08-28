@@ -8,6 +8,8 @@ import {
   readingGrade,
   translationStatus,
 } from '../lib/hallway';
+import { readNotes } from '../lib/listen';
+import type { Reading } from '../lib/listen';
 
 type Beat = 'translate' | 'say' | 'hand';
 
@@ -40,6 +42,8 @@ export default function HallwayView({
   const [facts, setFacts] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
   const [programId, setProgramId] = useState<string | null>(null);
+  const [notes, setNotes] = useState('');
+  const [reading, setReading] = useState<Reading | null>(null);
 
   const recommended = plan.recommendedOption?.program ?? null;
 
@@ -85,6 +89,18 @@ export default function HallwayView({
 
   const toggleFact = (id: string) =>
     setFacts((prev) => (prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]));
+
+  const listen = () => {
+    const result = readNotes(notes, registry);
+    setReading(result);
+    setFacts(result.factIds);
+    if (result.programId) setProgramId(result.programId);
+  };
+
+  const clearNotes = () => {
+    setNotes('');
+    setReading(null);
+  };
 
   const copy = async (text: string) => {
     try {
@@ -151,6 +167,73 @@ export default function HallwayView({
               <summary>
                 What did they tell you? <span className="chip-count">{facts.length} tapped</span>
               </summary>
+
+              <div className="notes">
+                <label htmlFor="notes">Type what you remember, in your words.</label>
+                <textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="wants to get into computers, works days at the warehouse, no car, mom says money is tight"
+                  rows={3}
+                />
+                <div className="notes-actions">
+                  <button type="button" className="notes-go" onClick={listen} disabled={!notes.trim()}>
+                    Read it back
+                  </button>
+                  {reading && (
+                    <button type="button" className="notes-clear" onClick={clearNotes}>
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <p className="notes-privacy">
+                  This runs on your phone. Nothing is sent anywhere and nothing is kept. Type what
+                  you heard, not who said it.
+                </p>
+              </div>
+
+              {reading && (
+                <div className="reading">
+                  {reading.heard.length > 0 ? (
+                    <>
+                      <p className="reading-head">Here is what I picked up, and why.</p>
+                      <ul className="reading-list">
+                        {reading.heard.map((h) => (
+                          <li key={h.factId}>
+                            <strong>{h.label}</strong>
+                            <span className="reading-because">because you wrote "{h.becauseTheySaid}"</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : (
+                    <p className="reading-head">
+                      I did not pick anything up from that. Tap what applies below instead. People do
+                      not talk in keywords.
+                    </p>
+                  )}
+                  {reading.programBecause && (
+                    <p className="reading-program">
+                      Opened <strong>{shortLabel(program)}</strong>. {reading.programBecause}
+                    </p>
+                  )}
+                  {reading.stillUnknown.length > 0 && (
+                    <>
+                      <p className="reading-head">Still worth asking</p>
+                      <ul className="reading-ask">
+                        {reading.stillUnknown.map((q) => (
+                          <li key={q}>{q}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  <p className="reading-check">
+                    Check this before you use it. It matches words, it does not understand anyone.
+                  </p>
+                </div>
+              )}
+
               <div className="chips">
                 {SITUATION_FACTS.map((f) => (
                   <button

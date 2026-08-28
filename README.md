@@ -164,6 +164,31 @@ They stay on the list because a directory would list them, someone would spend a
 them, and the connector who sent them there would wear it. A test asserts that a program
 flagged `do_not_rely` can never produce a script.
 
+### Say it back to me
+
+The connector does not tap eight chips while someone is standing in front of him. So the
+screen opens with a box: **type what you remember, in your words.**
+
+> kid wants to get into computers, works days at the warehouse, no car, mom says money is
+> tight
+
+That sets the program to IT Help Desk and lights three chips, and then it **shows its
+work**: each chip names the words in his own notes that produced it. It also names what
+the notes did *not* settle, as questions rather than assumptions:
+
+- Do they have a computer and internet at home that holds up for three hours?
+- Has anyone talked to them about who pays for it?
+
+When it recognizes nothing it says so, in those words, and tells him to tap the chips
+instead. People do not talk in keywords, and a matcher that quietly returns nothing is
+worse than one that admits it.
+
+This runs entirely in the browser. **Nothing is sent anywhere and nothing is kept**, which
+matters more here than anywhere else in the project: these notes are about a real person
+who is not in the room. The box says so, and tells the connector to type what he heard
+rather than who said it. It will also never route to one of the two programs the tool
+refuses to vouch for, and a test enforces that.
+
 Across the top sit optional **situation chips** (money is tight, no car, no computer,
 works days, no diploma, on SNAP, veteran, has a disability). Tapping one changes what the
 connector says next and which doors surface. Nothing is stored, nothing is sent, and
@@ -260,6 +285,7 @@ public/data/*.csv            the event's synthetic profiles, unmodified
 src/types.ts                 domain types, synthetic and real kept separate
 src/lib/planner.ts           the rule engine (barriers, options, ordering, collisions)
 src/lib/hallway.ts           the three beats: plain card, script, handoff message
+src/lib/listen.ts            free-text notes to chips, with the matched words shown
 src/lib/csv.ts               CSV reader
 src/components/HallwayView   the phone-shaped primary screen
 src/components/ConnectorView the four-question brief
@@ -268,6 +294,7 @@ src/components/PlanView      per-profile plan, "show the working"
 src/components/NavigatorView caseload aggregate
 test/planner.test.ts         27 tests
 test/hallway.test.ts         17 tests, including the reading-level gate
+test/listen.test.ts          7 tests, including what it must refuse to route to
 ```
 
 The planner is a set of named rules in one reviewable file. Each rule states its own
@@ -316,7 +343,7 @@ git clone https://github.com/mattezell/seven-day-pathway
 cd seven-day-pathway
 npm install
 npm run dev      # http://localhost:5173/#PROF-04
-npm test         # 44 tests
+npm test         # 51 tests
 npm run build
 ```
 
@@ -332,8 +359,10 @@ npm run build
   recommendation.
 - Profiles outside the covered pathway return an explicit "not covered" result and route
   to the profile's named handoff owner, instead of a fabricated match.
-- The hallway flow runs end to end on a phone: three beats, eight situation chips, a
-  copyable handoff message.
+- The hallway flow runs end to end on a phone: a free-text notes box, three beats, eight
+  situation chips, a copyable handoff message.
+- Typed notes set the program and the chips, and every chip shows the words that produced
+  it. Nothing is transmitted or stored.
 - The script holds a grade 2.3 to 3.4 reading level across every combination of chips and
   every translatable program, enforced by test, and repeats no sentence when several
   chips are tapped at once.
@@ -341,7 +370,7 @@ npm run build
   is enforced by test rather than by hand.
 - Five funding paths are listed with the deciding office named on each, and the two that
   could not be fully verified are labeled as such.
-- 44 tests pass. Typecheck and lint clean.
+- 51 tests pass. Typecheck and lint clean.
 
 ## Known limitations and simulated elements
 
