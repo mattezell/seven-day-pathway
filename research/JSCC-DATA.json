@@ -96,16 +96,16 @@
   ],
   "plain": {
     "job_said_out_loud": "Data analyst with Power BI",
-    "the_job_is": "someone who takes messy business numbers and turns them into charts and reports so a company can make better decisions",
+    "the_job_is": "someone who takes a pile of business numbers and turns it into charts a company can act on",
     "what_you_get": "A class that gets you ready for a Microsoft data analyst test, but the page does not clearly say which test, or what you get from the class itself.",
     "translations": [
       {
         "page_says": "Data analysts provide accurate and valuable data to businesses, offering their employers better decision-making opportunities.",
-        "you_say": "Data analysts turn messy numbers into clear info that helps a company make good choices."
+        "you_say": "A data analyst takes a pile of numbers and turns it into charts. The charts help a business decide what to do."
       },
       {
         "page_says": "This course will prepare candidates for the Microsoft DA-100 certification in Microsoft Power BI.",
-        "you_say": "This class is supposed to get you ready for a Microsoft test called DA-100, but another part of the same page calls it PL-300 instead, so it is not clear which test they mean."
+        "you_say": "This class gets you ready for a Microsoft test. But the page names two tests, DA-100 and PL-300. Ask them which one they mean before you pay."
       },
       {
         "page_says": "It is the responsibility of the student to schedule their national certification exams.",

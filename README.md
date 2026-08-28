@@ -301,6 +301,7 @@ src/lib/hallway.ts           the three beats: plain card, script, handoff messag
 src/lib/listen.ts            free-text notes to chips, with the matched words shown
 src/lib/voice.ts             dictation into the notes box, and what it costs in privacy
 scripts/research-program.mjs draft a registry entry from a program URL
+scripts/approve-program.mjs  human approval, re-verification, and the reading gate
 scripts/lib/verify-quotes.mjs every drafted quote checked against the fetched page
 research/                    drafts awaiting human review, never loaded by the app
 src/lib/csv.ts               CSV reader
@@ -313,7 +314,7 @@ test/planner.test.ts         27 tests
 test/hallway.test.ts         17 tests, including the reading-level gate
 test/listen.test.ts          9 tests, including what it must refuse to route to
 test/voice.test.ts           3 tests on the dictation seam
-test/research.test.ts        5 tests, mostly on catching fabricated quotes
+test/research.test.ts        6 tests, mostly on catching fabricated quotes
 ```
 
 The planner is a set of named rules in one reviewable file. Each rule states its own
@@ -344,7 +345,20 @@ be checkable, and then it is checked.
 
 Nothing here writes to `public/data/programs.json`. Drafts land in `research/` marked
 `quotes_verified_pending_human_review`, because a person still decides what a connector is
-allowed to repeat.
+allowed to repeat. A second script does the approving, and it is the human-confirmation
+point made executable:
+
+```bash
+node scripts/approve-program.mjs research/JSCC-DATA.json --i-reviewed-this \
+  --funding WIOA-CAREERCENTER,ACCS-PATHWAYS
+```
+
+It refuses in four ways. Without `--i-reviewed-this` it prints a summary and stops, because
+nobody has taken responsibility. It refuses a draft not marked quote-verified. It
+**re-fetches the page and re-checks every quote**, so a hand-edited draft cannot smuggle a
+fabricated quote past the first check and a page that changed since drafting is caught. And
+it applies the app's own reading-level gate, rejecting any plain sentence above ninth
+grade before it can reach a connector rather than after.
 
 **It was run live during the build window** on a sixth program, Jefferson State's Data
 Analytics: Power BI course. Nine of nine quotes verified, and it found a problem nobody
@@ -355,9 +369,19 @@ on the page. It also declined to state a tuition figure, because the page publis
 and raised five `incomplete` flags instead of filling the gaps. The draft is committed at
 [research/JSCC-DATA.json](research/JSCC-DATA.json).
 
+**The loop was then run end to end**, and it caught its own author twice. The first
+approval attempt was rejected by the existing registry tests: the script had dropped the
+`source_url` from every requirement, and had let through a plain sentence reading at grade
+9.9. Both are now gates inside the approval script, so the next person hits them before the
+merge rather than after. Approving then required rewriting two lines in the draft, which is
+what human review is supposed to look like. JSCC-DATA is now the sixth program in the
+registry, and it renders as a program the tool **refuses to give a connector words for**,
+on the strength of the contradiction it found in its own source page.
+
 The tests that matter here are the negative ones. `test/research.test.ts` feeds the
-verifier fabricated quotes and asserts every one is caught, and asserts that no field
-which claims to quote a page escapes checking.
+verifier fabricated quotes and asserts every one is caught, asserts that no field which
+claims to quote a page escapes checking, and asserts that approval preserves every citation
+a connector would later be shown as proof.
 
 ### How Claude was used to build it
 
@@ -402,7 +426,7 @@ git clone https://github.com/mattezell/seven-day-pathway
 cd seven-day-pathway
 npm install
 npm run dev      # http://localhost:5173/#PROF-04
-npm test         # 61 tests
+npm test         # 62 tests
 npm run build
 ```
 
@@ -431,7 +455,9 @@ npm run build
   could not be fully verified are labeled as such.
 - The research tool runs end to end against a live page, verifies its own quotes, and
   found a contradiction in a sixth program during the build window.
-- 61 tests pass. Typecheck and lint clean.
+- That sixth program was reviewed, approved through the gates, and is live in the registry,
+  where it correctly refuses to produce words for a connector.
+- 62 tests pass. Typecheck and lint clean.
 
 ## Known limitations and simulated elements
 
@@ -447,7 +473,7 @@ npm run build
   directly. The other five are visible and produce an honest "not covered" result. The
   navigator view's barrier counts span all six, since barrier detection reads the profile
   text and does not depend on the registry.
-- **Five programs is a demonstration, not a census** of Birmingham IT training.
+- **Six programs is a demonstration, not a census** of Birmingham IT training.
 - **The seven-day window is a planning horizon, not a promise.** For the anchor profile
   the honest answer is that a class cannot start within seven days. What can finish in
   seven days is the funding conversation and the paperwork that make the November cohort

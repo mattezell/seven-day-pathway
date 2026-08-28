@@ -132,7 +132,7 @@ let entry;
 try {
   entry = JSON.parse(jsonText);
 } catch (error) {
-  console.error('Claude did not return parseable JSON.');
+  console.error(`Claude did not return parseable JSON: ${error.message}`);
   console.error(raw.slice(0, 2000));
   process.exit(1);
 }

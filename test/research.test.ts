@@ -66,3 +66,27 @@ test('the drafted sixth program was verified and left for human review', () => {
     'the contradiction the tool found is not recorded',
   );
 });
+
+// The approval script normalizes a draft into the registry. What must survive
+// that step is everything a connector would later be shown as proof.
+
+test('an approved entry carries namespaced ids and a source url on every requirement', () => {
+  const registry = JSON.parse(
+    readFileSync(new URL('../public/data/programs.json', import.meta.url), 'utf8'),
+  );
+  const approved = registry.programs.find((p: { id: string }) => p.id === 'JSCC-DATA');
+  assert.ok(approved, 'the approved sixth program is not in the registry');
+  for (const requirement of approved.requirements) {
+    assert.match(requirement.id, /^JSCC-DATA-REQ-\d\d$/);
+    assert.ok(requirement.source_url, `${requirement.id} lost its source url in approval`);
+  }
+  for (const flag of approved.data_quality_flags) {
+    assert.match(flag.id, /^JSCC-DATA-DQ-\d\d$/);
+  }
+  for (const translation of approved.plain.translations) {
+    assert.equal(translation.source_url, approved.program_url);
+  }
+  assert.ok(approved.funding_paths.length > 0, 'approved with no way to pay for it');
+  assert.ok(!('review_status' in approved), 'draft bookkeeping leaked into the registry');
+  assert.ok(!('unverified_quotes' in approved), 'draft bookkeeping leaked into the registry');
+});
