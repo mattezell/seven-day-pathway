@@ -79,7 +79,9 @@
           "source_url": "https://www.jeffersonstate.edu/academics/fast-track/"
         }
       ],
-      "funding_paths": ["WIOA-CAREERCENTER"],
+      "funding_paths": [
+        "WIOA-CAREERCENTER"
+      ],
       "contacts": [
         {
           "role": "Fast Track / Workforce Education",
@@ -178,7 +180,9 @@
           "source_url": "https://www.jeffersonstate.edu/academics/fast-track/"
         }
       ],
-      "funding_paths": ["WIOA-CAREERCENTER"],
+      "funding_paths": [
+        "WIOA-CAREERCENTER"
+      ],
       "contacts": [
         {
           "role": "Fast Track / Workforce Education",
@@ -194,7 +198,17 @@
         }
       ],
       "data_quality_flags": [],
-      "fetched_at": "2026-08-28T10:20:00-05:00"
+      "fetched_at": "2026-08-28T10:20:00-05:00",
+      "in_person_help": {
+        "note": "Registration help is available in person during business hours.",
+        "hours": "Monday-Friday, 8:00 a.m.-4:30 p.m.",
+        "locations": [
+          "Jefferson Campus, 2601 Carson Road, George Wallace Hall, Office 202",
+          "Shelby-Hoover Campus, 4600 Valleydale Road, Health Science Building, Office 432"
+        ],
+        "source_quote": "Monday-Friday, 8:00 a.m.-4:30 p.m.",
+        "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/computer-technician-with-comptia-a-certification-prep/"
+      }
     },
     {
       "id": "JSCC-CYBER",
@@ -256,7 +270,9 @@
           "source_url": "https://www.jeffersonstate.edu/academics/fast-track/"
         }
       ],
-      "funding_paths": ["WIOA-CAREERCENTER"],
+      "funding_paths": [
+        "WIOA-CAREERCENTER"
+      ],
       "contacts": [
         {
           "role": "Fast Track / Workforce Education",
@@ -275,7 +291,17 @@
           "source_url": "https://www.jeffersonstate.edu/admissions/workforce-education-2/fast-track-course-information-registration/"
         }
       ],
-      "fetched_at": "2026-08-28T10:20:00-05:00"
+      "fetched_at": "2026-08-28T10:20:00-05:00",
+      "in_person_help": {
+        "note": "Registration help is available in person during business hours.",
+        "hours": "Monday-Friday, 8:00 a.m.-4:30 p.m.",
+        "locations": [
+          "Jefferson Campus, 2601 Carson Road, George Wallace Hall, Office 202",
+          "Shelby-Hoover Campus, 4600 Valleydale Road, Health Science Building, Office 432"
+        ],
+        "source_quote": "Monday-Friday, 8:00 a.m.-4:30 p.m.",
+        "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/computer-technician-with-comptia-a-certification-prep/"
+      }
     },
     {
       "id": "LAWSON-WFD",
@@ -294,7 +320,9 @@
       "format": "Not published; the college offers online and hybrid options, and a separate Weekend College",
       "cohorts": [],
       "requirements": [],
-      "funding_paths": ["WIOA-CAREERCENTER"],
+      "funding_paths": [
+        "WIOA-CAREERCENTER"
+      ],
       "contacts": [
         {
           "role": "Office of Workforce Development",
@@ -403,7 +431,14 @@
           "url": "https://centralsix.org/"
         }
       ],
-      "counties_served": ["Blount", "Chilton", "Jefferson", "Shelby", "St. Clair", "Walker"],
+      "counties_served": [
+        "Blount",
+        "Chilton",
+        "Jefferson",
+        "Shelby",
+        "St. Clair",
+        "Walker"
+      ],
       "counties_source_quote": "The Central Six Development Council serves the following counties: Blount, Chilton, Jefferson, Shelby, St. Clair, and Walker.",
       "unknowns": [
         "How long an eligibility determination takes is not published. This is the single largest unknown in any plan that depends on funding, and every plan this project generates says so out loud rather than guessing a number."

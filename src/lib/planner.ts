@@ -140,7 +140,11 @@ function assessBarrier(
   switch (barrier.barrier) {
     case 'schedule': {
       if (evening && online) {
-        const cohort = program.cohorts.find(isEveningCohort)!;
+        // Describe a cohort the person could actually join, not one that has
+        // already started, even though both meet in the evening.
+        const joinable = nextJoinableCohort(program);
+        const cohort =
+          joinable && isEveningCohort(joinable) ? joinable : program.cohorts.find(isEveningCohort)!;
         return {
           ...barrier,
           verdict: 'addresses',
@@ -292,39 +296,107 @@ export function buildOptions(
   });
 }
 
+const STOPWORDS = new Set([
+  'a', 'an', 'and', 'or', 'the', 'to', 'in', 'of', 'for', 'with', 'on', 'at',
+  'enter', 'become', 'secure', 'qualify', 'complete', 'roles', 'role',
+]);
+
+function significantTerms(text: string): Set<string> {
+  return new Set(
+    text
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((w) => w.length > 1 && !STOPWORDS.has(w))
+      .map((w) => (w.endsWith('s') ? w.slice(0, -1) : w)),
+  );
+}
+
 /**
- * Recommendation rule, stated in full so it can be argued with:
- * among options that are not blocked, prefer the one that addresses the most of
- * this profile's barriers; break ties by the earliest cohort a person could still
- * join. A program with no joinable cohort can still be recommended, because the
- * seven-day work is preparation, not enrolment.
+ * How closely a program's stated destination matches the profile's stated goal.
+ * Plain word overlap, deliberately: a navigator can check it by eye, which is
+ * the point. This is not a quality judgement about the program.
+ */
+export function goalAlignment(profile: SyntheticProfile, program: Program): number {
+  const goal = significantTerms(profile.goal);
+  const dest = significantTerms(program.leads_to);
+  let shared = 0;
+  for (const term of goal) if (dest.has(term)) shared += 1;
+  return shared;
+}
+
+/**
+ * Recommendation rule, stated in full so it can be argued with.
+ * The person is never scored or ranked; these tests are applied to programs.
  */
 export const RECOMMENDATION_RULE =
-  'Among options that are not blocked by a data-quality problem, the planner prefers the one that addresses the most of this profile\'s stated barriers. Ties are broken by the earliest cohort a person could still join. Nothing is scored, and the person is never ranked.';
+  'Options that are blocked by a data-quality problem are set aside. Of the rest, the planner prefers the program whose stated destination most closely matches the goal in the profile, then the one that addresses the most of the profile\'s stated barriers, then the one with the earliest cohort a person could still join. Each test is plain word overlap or a count you can check by eye. Nothing is scored and no person is ranked.';
 
-export function chooseRecommended(options: PathwayOption[]): PathwayOption | null {
+export function chooseRecommended(
+  options: PathwayOption[],
+  profile: SyntheticProfile,
+): PathwayOption | null {
   const eligible = options.filter((o) => !o.blocking);
   if (eligible.length === 0) return null;
 
   return eligible.reduce((best, current) => {
-    const score = (o: PathwayOption) => o.assessments.filter((a) => a.verdict === 'addresses').length;
-    if (score(current) !== score(best)) return score(current) > score(best) ? current : best;
+    const goal = (o: PathwayOption) => goalAlignment(profile, o.program);
+    if (goal(current) !== goal(best)) return goal(current) > goal(best) ? current : best;
+
+    const addressed = (o: PathwayOption) =>
+      o.assessments.filter((a) => a.verdict === 'addresses').length;
+    if (addressed(current) !== addressed(best)) return addressed(current) > addressed(best) ? current : best;
+
     const start = (o: PathwayOption) => o.nextCohort?.start_date ?? '9999-12-31';
     return start(current) < start(best) ? current : best;
   });
 }
 
-function formatDayWindow(startDay: number, endDay: number, today: Date = TODAY): string {
-  const fmt = (offset: number) =>
-    new Date(today.getTime() + offset * DAY_MS).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      timeZone: 'America/Chicago',
-    });
-  return startDay === endDay
-    ? `Day ${startDay} (${fmt(startDay - 1)})`
-    : `Days ${startDay}-${endDay} (${fmt(startDay - 1)} to ${fmt(endDay - 1)})`;
+const dayLabel = (date: Date) =>
+  date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'America/Chicago',
+  });
+
+const isWeekend = (date: Date) => date.getDay() === 0 || date.getDay() === 6;
+
+/** Every office in this pathway keeps weekday hours, so a call step must not land on a weekend. */
+function shiftToBusinessDay(date: Date): Date {
+  const moved = new Date(date);
+  while (isWeekend(moved)) moved.setDate(moved.getDate() + 1);
+  return moved;
+}
+
+/**
+ * Day windows are real dates, and steps that require reaching an office are
+ * moved off weekends. Telling someone to phone a Monday-to-Friday office on a
+ * Saturday is exactly the failure this project exists to catch.
+ */
+function formatDayWindow(
+  startDay: number,
+  endDay: number,
+  options: { businessHoursOnly?: boolean } = {},
+  today: Date = TODAY,
+): string {
+  const raw = (offset: number) => new Date(today.getTime() + offset * DAY_MS);
+  const adjust = (d: Date) => (options.businessHoursOnly ? shiftToBusinessDay(d) : d);
+
+  const start = adjust(raw(startDay - 1));
+  const end = adjust(raw(endDay - 1));
+
+  if (start.getTime() === end.getTime()) return dayLabel(start);
+  return `${dayLabel(start)} to ${dayLabel(end)}`;
+}
+
+/** Human-readable form of an ISO date, for text a person reads aloud on a call. */
+function longDate(dateIso: string): string {
+  return new Date(`${dateIso}T00:00:00-05:00`).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'America/Chicago',
+  });
 }
 
 /**
@@ -347,15 +419,23 @@ export function buildSteps(
   const hasMoneyBarrier = barriers.some((b) => b.barrier === 'upfront_cost');
   const push = (step: Omit<PlanStep, 'order'>) => steps.push({ ...step, order: steps.length + 1 });
 
-  if (funding && hasMoneyBarrier && funding.ordering_constraint.rule === 'funding_before_enrollment') {
+  const costsMoney = typeof program.cost_usd === 'number' && program.cost_usd > 0;
+  if (funding && costsMoney && funding.ordering_constraint.rule === 'funding_before_enrollment') {
     const contact = funding.contacts[0];
     push({
-      dayWindow: formatDayWindow(1, 1),
-      title: `Open the ${funding.name} conversation today`,
-      detail: `Call the ${contact.name}${contact.phone ? ` at ${contact.phone}` : ''} and ask to start an eligibility determination. Ask three things: whether this profile's situation qualifies, exactly which documents they need, and how long a determination takes.`,
+      dayWindow: formatDayWindow(1, 1, { businessHoursOnly: true }),
+      title: hasMoneyBarrier
+        ? `Open the ${funding.name} conversation today`
+        : `Settle how the $${program.cost_usd!.toLocaleString()} gets paid, before anything else`,
+      detail: `Call the ${contact.name}${contact.phone ? ` at ${contact.phone}` : ''} and ask to start an eligibility determination. Ask three things: whether this situation qualifies, exactly which documents they need, and how long a determination takes.${
+        hasMoneyBarrier
+          ? ''
+          : ` This profile does not state a money problem, so this step is here as a question rather than an assumption. But the course costs $${program.cost_usd!.toLocaleString()} and the college takes payment at the moment of enrollment, so if cost is a factor at all, this is the call that has to happen first. If it genuinely is not a factor, this step takes one minute to close.`
+      }`,
       doneBy: 'the person',
       confirmedBy: contact.name,
-      confirmationQuestion: 'Am I eligible for a WIOA training scholarship, what do you need from me, and how long will a determination take?',
+      confirmationQuestion:
+        'Am I eligible for a WIOA training scholarship, what do you need from me, and how long will a determination take?',
       contact,
       why: funding.ordering_constraint.why,
       sourceQuotes: funding.ordering_constraint.source_quotes,
@@ -368,14 +448,14 @@ export function buildSteps(
   const providerContact = program.contacts[0];
   if (started && providerContact) {
     push({
-      dayWindow: formatDayWindow(1, 2),
+      dayWindow: formatDayWindow(1, 2, { businessHoursOnly: true }),
       title: `Ask whether the ${started.days} cohort still accepts a late start`,
-      detail: `The ${started.days} section began ${started.start_date}, ${Math.abs(
+      detail: `The ${started.days} section began ${longDate(started.start_date)}, ${Math.abs(
         daysUntil(started.start_date),
       )} days ago. Whether someone can still join is a question only ${program.provider_short} can answer, and it is worth one phone call before planning around a later date.`,
       doneBy: 'the person',
       confirmedBy: providerContact.name,
-      confirmationQuestion: `The ${started.days} section started on ${started.start_date}. Can someone still enroll, or should I plan for the next cohort?`,
+      confirmationQuestion: `The ${started.days} section started on ${longDate(started.start_date)}. Can someone still enroll, or should I plan for the next cohort?`,
       contact: providerContact,
       why: 'A cohort that already started is not automatically closed, and the difference between joining now and waiting is months of income.',
       sourceQuotes: started.status_note ? [started.status_note] : [],
@@ -415,7 +495,7 @@ export function buildSteps(
   if (flaggedCohort) {
     const flag = program.data_quality_flags.find((f) => f.id === flaggedCohort.data_quality_flag);
     push({
-      dayWindow: formatDayWindow(2, 5),
+      dayWindow: formatDayWindow(2, 5, { businessHoursOnly: true }),
       title: 'Confirm the published cohort dates, which do not read correctly',
       detail: flag?.note ?? 'The published dates for this cohort are internally inconsistent and need confirmation.',
       doneBy: 'the person',
@@ -431,7 +511,7 @@ export function buildSteps(
 
   for (const blocked of blockedOptions) {
     push({
-      dayWindow: formatDayWindow(3, 5),
+      dayWindow: formatDayWindow(3, 5, { businessHoursOnly: true }),
       title: `Resolve, but do not plan around, ${blocked.program.provider}`,
       detail: `${blocked.blockingReason ?? 'This program has an unresolved data-quality problem.'} One email or call settles it. Until it is settled, this plan does not depend on it.`,
       doneBy: 'the person',
@@ -451,7 +531,7 @@ export function buildSteps(
     dayWindow: formatDayWindow(6, 7),
     title: 'Decide with the funding answer in hand, not before',
     detail: cohort
-      ? `The next cohort of ${program.program_name} starts ${cohort.start_date}, ${daysUntil(
+      ? `The next cohort of ${program.program_name} starts ${longDate(cohort.start_date)}, ${daysUntil(
           cohort.start_date,
         )} days out. That is enough time for a funding determination if it started on day one, and not enough if it starts later. Review what came back this week with a navigator and choose.`
       : `No cohort of ${program.program_name} has a published start date a person could still join. Review what came back this week with a navigator and choose between waiting for the next posting and a different program.`,
@@ -527,7 +607,7 @@ export function collectOpenQuestions(
 export function buildPlan(profile: SyntheticProfile, registry: ProgramRegistry): SevenDayPlan {
   const barriers = detectBarriers(profile);
   const options = buildOptions(profile, barriers, registry);
-  const recommendedOption = chooseRecommended(options);
+  const recommendedOption = chooseRecommended(options, profile);
   const blockedOptions = options.filter((o) => o.blocking);
 
   return {
