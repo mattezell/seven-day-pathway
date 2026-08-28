@@ -82,7 +82,29 @@ Several of those are absent because the source pages do not publish them, which 
 registry already records as `incomplete` flags rather than gaps. That distinction
 should survive any schema expansion.
 
-### 6. Not built: analytics (26), alternative pathway ladders (16), printable report (17)
+### 6. Funding discovery is manual where program discovery is not
+
+The five funding paths in the registry (WIOA, ACCS Pathways to Prosperity, Jeff State
+Career Pathways, ADRS vocational rehab, SNAP E&T) were researched and entered by hand.
+`scripts/research-program.mjs` drafts **programs** from a URL under quote verification,
+but there is no equivalent for funding sources, so growing the funding side of the
+registry is still artisanal.
+
+Tested against a real case on event day: STRIVE Birmingham (strive.org, tuition-free
+workforce training, a Birmingham site since 2023). The program researcher handled it,
+8 of 8 quotes verified, draft at `research/STRIVE-BHAM.json`. What it caught is why the
+verification layer matters for funding claims specifically: the "Free" on that page is
+the page tagline, not a statement in the program description; the only published phone
+number is the New York headquarters, not the Birmingham site; and no class dates are
+published, only weekly info-session times. A connector repeating "it's free, call them"
+off that page would be wrong twice before lunch.
+
+**To close it:** a `research-funding.mjs` sibling that drafts a `FundingPath` (covers,
+determined_by, conditions, contacts, ordering constraints) instead of a `Program`, with
+the same quote gate and the same human approval, feeding the funding doors the way the
+program pipeline feeds the switcher.
+
+### 7. Not built: analytics (26), alternative pathway ladders (16), printable report (17)
 
 ## What should not change
 
