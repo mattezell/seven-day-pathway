@@ -30,32 +30,35 @@ not answer a question, it emits the question instead of a guess.
 
 ### The connector we designed for
 
-Bruce is an illustrative persona, not a real individual and not part of the synthetic
+Pruce is an illustrative persona, not a real individual and not part of the synthetic
 dataset. He is late twenties to early thirties, born to the community he serves. He
 went through leadership training and, unlike many of the people he grew up with, he
 stayed, and he spends his time building up the people around him. He is loosely
 attached to a larger community-minded organization.
 
-Three things about Bruce set the design:
+Three things about Pruce set the design:
 
-**His credibility is generational, not positional.** Nobody appointed Bruce. People
+**His credibility is generational, not positional.** Nobody appointed Pruce. People
 listen to him because they have known him their whole lives. When he vouches for a
 program he is spending trust built over decades, on behalf of people he will see again
 at church on Sunday. That is why "This one could cost you" is a headline section rather
 than a footnote, and why a program whose status cannot be confirmed is shown and
 explained rather than quietly dropped.
 
-**He has the leadership training. He does not have the facts.** Bruce already knows how
+**He has the leadership training. He does not have the facts.** Pruce already knows how
 to have the conversation. He does not need a tool that coaches him on how to talk to
 people, and would rightly resent one. He needs to know what is true today. So the tool
 supplies facts, sources, and limits, and stays entirely out of the human part.
 
-**He works from a phone and passes things on by message.** Not by sending a link to a
-web app and hoping. That is why the brief exports as plain text, with the read date and
-the limits written into the message body, so the caveats survive the forward.
+**His scarce resource is ninety seconds, not information.** The conversation that
+matters happens standing up, in a hallway after a meeting or on a sidewalk, with a phone
+in one hand. Pruce is not going to sit down and read a directory. What fails him in that
+moment is institutional language he has to translate live, out loud, without stalling.
+So the tool builds him the words rather than the directory, and everything it produces
+is sized for a thumb and a single breath.
 
 His organizational attachment matters too: it means the organizer view has a real
-audience. What Bruce learns across many conversations is exactly what his organization
+audience. What Pruce learns across many conversations is exactly what his organization
 needs in order to argue for something.
 
 ## Problem and repeated workflow
@@ -100,7 +103,42 @@ capable. It fails on sequencing.
 
 ## What the project does
 
-Pick a synthetic profile. The connector gets a brief built around four questions:
+### The hallway: translate, say it, hand it off
+
+The primary screen is phone-shaped and has three beats, because that is the shape of the
+moment it serves.
+
+**1. Translate.** The program in plain speech: what it is, what you get, when it meets,
+what it costs, what you need. Then *what usually stops people*, which is derived from the
+registry rather than written by hand: a cohort that already started, payment due at
+signup, an enrollment desk that keeps weekday hours, paperwork that takes longer than
+anyone expects.
+
+**2. Say it.** A script to read out loud, roughly 55 to 75 seconds, closing on exactly
+one ask. The body lines carry no question marks, so the connector does not accidentally
+open three threads at once. The script is scored with Flesch-Kincaid and **a test fails
+the build if it exceeds a ninth-grade reading level** in any combination of inputs. It
+currently lands around grade 2.5. That gate exists because the failure mode this project
+is built against is prose drifting back into the institutional register.
+
+**3. Hand it off.** A plain-text message to send before walking away, leading with the
+funding call, because that ordering is what decides whether any of the rest works.
+
+Across the top sit optional **situation chips** (money is tight, no car, no computer,
+works days, no diploma, on SNAP, veteran, has a disability). Tapping one changes what the
+connector says next and which doors surface. Nothing is stored, nothing is sent, and
+tapping a chip never means anyone qualifies for anything. The connector already holds
+these facts from the conversation; the tool just stops making them translate on the fly.
+
+One finding shaped this directly. Online delivery **solves** the transport barrier and
+**silently creates** a device barrier: a phone will not carry a three-hour live session
+twice a week, so the class quietly requires a computer and steady home internet. That
+requirement appears on no program page. Tapping "no car" surfaces it.
+
+### The brief: four questions
+
+Behind the hallway, for when there is a table and time, the connector gets a brief built
+around four questions:
 
 - **Say this. It is sourced.** Facts read off a public page today, each with the
   verbatim quote attached so the connector can show their work.
@@ -110,6 +148,11 @@ Pick a synthetic profile. The connector gets a brief built around four questions
   exact question to ask, so the person arrives able to advocate for themselves.
 - **This one could cost you.** Programs a connector has heard of but should not vouch
   for today, with what to say instead.
+
+Plus **the funding doors**: every route to paying for the course that could be verified
+today, each one naming the office that decides it. Two of the five could not be fully
+verified this morning and say so on the card, with a note explaining exactly how far
+verification got, rather than a fabricated quote.
 
 Plus a freshness contract: the brief states the date it was read and declares itself
 stale after 30 days, because a page that goes out of date is merely wrong while a
@@ -176,10 +219,15 @@ public/data/programs.json    the verified program registry
 public/data/*.csv            the event's synthetic profiles, unmodified
 src/types.ts                 domain types, synthetic and real kept separate
 src/lib/planner.ts           the rule engine (barriers, options, ordering, collisions)
+src/lib/hallway.ts           the three beats: plain card, script, handoff message
 src/lib/csv.ts               CSV reader
-src/components/PlanView      per-profile plan
+src/components/HallwayView   the phone-shaped primary screen
+src/components/ConnectorView the four-question brief
+src/components/FundingDoors  routes to paying for it, and who decides each
+src/components/PlanView      per-profile plan, "show the working"
 src/components/NavigatorView caseload aggregate
-test/planner.test.ts         16 tests
+test/planner.test.ts         27 tests
+test/hallway.test.ts         11 tests, including the reading-level gate
 ```
 
 The planner is a set of named rules in one reviewable file. Each rule states its own
@@ -228,7 +276,7 @@ git clone https://github.com/mattezell/seven-day-pathway
 cd seven-day-pathway
 npm install
 npm run dev      # http://localhost:5173/#PROF-04
-npm test         # 16 planner tests
+npm test         # 38 tests
 npm run build
 ```
 
@@ -244,7 +292,13 @@ npm run build
   recommendation.
 - Profiles outside the covered pathway return an explicit "not covered" result and route
   to the profile's named handoff owner, instead of a fabricated match.
-- 16 tests pass. Typecheck and lint clean.
+- The hallway flow runs end to end on a phone: three beats, eight situation chips, a
+  copyable handoff message.
+- The script holds a grade 2.5 reading level across every combination of chips, enforced
+  by test, and repeats no sentence when several chips are tapped at once.
+- Five funding paths are listed with the deciding office named on each, and the two that
+  could not be fully verified are labeled as such.
+- 38 tests pass. Typecheck and lint clean.
 
 ## Known limitations and simulated elements
 
