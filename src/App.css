@@ -1482,3 +1482,63 @@ code {
   font-size: 0.78rem;
   color: var(--ink-faint);
 }
+
+/* Dictation. The mic sits beside the button, not in place of it: typing has to
+   stay the obvious path, because speaking is the one that leaves the phone. */
+.notes-mic {
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mic-on {
+  border-color: var(--stop);
+  background: var(--stop);
+  color: #fff;
+}
+
+.notes-interim {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  background: var(--stop-soft);
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.listening-dot {
+  flex: none;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--stop);
+  animation: listening 1.1s ease-in-out infinite;
+}
+
+@keyframes listening {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .listening-dot { animation: none; }
+}
+
+.notes-error {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}

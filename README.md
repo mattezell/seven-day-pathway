@@ -167,7 +167,8 @@ flagged `do_not_rely` can never produce a script.
 ### Say it back to me
 
 The connector does not tap eight chips while someone is standing in front of him. So the
-screen opens with a box: **type what you remember, in your words.**
+screen opens with a box he can **speak or type** into. The **Speak** button dictates
+straight into it, for the walk back to the car.
 
 > kid wants to get into computers, works days at the warehouse, no car, mom says money is
 > tight
@@ -190,10 +191,15 @@ When it recognizes nothing it says so, in those words, and tells him to tap the 
 instead. People do not talk in keywords, and a matcher that quietly returns nothing is
 worse than one that admits it.
 
-This runs entirely in the browser. **Nothing is sent anywhere and nothing is kept**, which
-matters more here than anywhere else in the project: these notes are about a real person
-who is not in the room. The box says so, and tells the connector to type what he heard
-rather than who said it. It will also never route to one of the two programs the tool
+**Typing stays on the phone. Speaking does not, and the screen says so.** The matching
+runs in the browser and transmits nothing. Dictation is different: the browser ships the
+audio to a speech service to turn it into words, and for Chrome that service is Google's.
+Everything else in this app touches no network, so that difference is disclosed in the
+interface rather than left for the earlier promise to quietly cover. Either way the box
+tells the connector to record what he heard, not who said it.
+
+The seam is what gets tested. Dictation arrives as unpunctuated fragments with no
+capitals, and a test asserts those still fold into one line and still match. It will also never route to one of the two programs the tool
 refuses to vouch for, and a test enforces that.
 
 Across the top sit optional **situation chips** (money is tight, no car, no computer,
@@ -293,6 +299,7 @@ src/types.ts                 domain types, synthetic and real kept separate
 src/lib/planner.ts           the rule engine (barriers, options, ordering, collisions)
 src/lib/hallway.ts           the three beats: plain card, script, handoff message
 src/lib/listen.ts            free-text notes to chips, with the matched words shown
+src/lib/voice.ts             dictation into the notes box, and what it costs in privacy
 src/lib/csv.ts               CSV reader
 src/components/HallwayView   the phone-shaped primary screen
 src/components/ConnectorView the four-question brief
@@ -302,6 +309,7 @@ src/components/NavigatorView caseload aggregate
 test/planner.test.ts         27 tests
 test/hallway.test.ts         17 tests, including the reading-level gate
 test/listen.test.ts          9 tests, including what it must refuse to route to
+test/voice.test.ts           3 tests on the dictation seam
 ```
 
 The planner is a set of named rules in one reviewable file. Each rule states its own
@@ -350,7 +358,7 @@ git clone https://github.com/mattezell/seven-day-pathway
 cd seven-day-pathway
 npm install
 npm run dev      # http://localhost:5173/#PROF-04
-npm test         # 53 tests
+npm test         # 56 tests
 npm run build
 ```
 
@@ -366,8 +374,8 @@ npm run build
   recommendation.
 - Profiles outside the covered pathway return an explicit "not covered" result and route
   to the profile's named handoff owner, instead of a fabricated match.
-- The hallway flow runs end to end on a phone: a free-text notes box, three beats, eight
-  situation chips, a copyable handoff message.
+- The hallway flow runs end to end on a phone: a notes box he can speak or type into,
+  three beats, eight situation chips, a copyable handoff message.
 - Typed notes set the program and the chips, and every chip shows the words that produced
   it. Nothing is transmitted or stored.
 - The script holds a grade 2.3 to 3.4 reading level across every combination of chips and
@@ -377,7 +385,7 @@ npm run build
   is enforced by test rather than by hand.
 - Five funding paths are listed with the deciding office named on each, and the two that
   could not be fully verified are labeled as such.
-- 53 tests pass. Typecheck and lint clean.
+- 56 tests pass. Typecheck and lint clean.
 
 ## Known limitations and simulated elements
 

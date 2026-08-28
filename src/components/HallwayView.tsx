@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Program, ProgramRegistry, SevenDayPlan } from '../types';
 import {
   SITUATION_FACTS,
@@ -10,6 +10,8 @@ import {
 } from '../lib/hallway';
 import { readNotes } from '../lib/listen';
 import type { Reading } from '../lib/listen';
+import { appendTranscript, isVoiceAvailable, startListening } from '../lib/voice';
+import type { VoiceSession } from '../lib/voice';
 
 type Beat = 'translate' | 'say' | 'hand';
 
@@ -44,6 +46,15 @@ export default function HallwayView({
   const [programId, setProgramId] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
   const [reading, setReading] = useState<Reading | null>(null);
+  const [listening, setListening] = useState(false);
+  const [interim, setInterim] = useState('');
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const session = useRef<VoiceSession | null>(null);
+  const voiceAvailable = isVoiceAvailable();
+
+  // A microphone left open because the component went away is the kind of bug
+  // that would end this project's credibility faster than a wrong phone number.
+  useEffect(() => () => session.current?.stop(), []);
 
   const recommended = plan.recommendedOption?.program ?? null;
 
@@ -100,6 +111,41 @@ export default function HallwayView({
   const clearNotes = () => {
     setNotes('');
     setReading(null);
+    setInterim('');
+  };
+
+  const stopVoice = () => {
+    session.current?.stop();
+    session.current = null;
+    setListening(false);
+    setInterim('');
+  };
+
+  const toggleVoice = () => {
+    if (listening) {
+      stopVoice();
+      return;
+    }
+    setVoiceError(null);
+    const started = startListening({
+      onFinal: (text) => setNotes((prev) => appendTranscript(prev, text)),
+      onInterim: setInterim,
+      onError: (message) => {
+        setVoiceError(message);
+        stopVoice();
+      },
+      onEnd: () => {
+        session.current = null;
+        setListening(false);
+        setInterim('');
+      },
+    });
+    if (!started) {
+      setVoiceError('This browser cannot do dictation. Type it instead.');
+      return;
+    }
+    session.current = started;
+    setListening(true);
   };
 
   const copy = async (text: string) => {
@@ -169,7 +215,9 @@ export default function HallwayView({
               </summary>
 
               <div className="notes">
-                <label htmlFor="notes">Type what you remember, in your words.</label>
+                <label htmlFor="notes">
+                  {voiceAvailable ? 'Say or type what you remember, in your words.' : 'Type what you remember, in your words.'}
+                </label>
                 <textarea
                   id="notes"
                   value={notes}
@@ -177,7 +225,23 @@ export default function HallwayView({
                   placeholder="wants to get into computers, works days at the warehouse, no car, mom says money is tight"
                   rows={3}
                 />
+                {listening && (
+                  <p className="notes-interim">
+                    <span className="listening-dot" />
+                    {interim || 'Listening. Talk normally.'}
+                  </p>
+                )}
+
                 <div className="notes-actions">
+                  {voiceAvailable && (
+                    <button
+                      type="button"
+                      className={listening ? 'notes-mic mic-on' : 'notes-mic'}
+                      onClick={toggleVoice}
+                    >
+                      {listening ? 'Stop' : 'Speak'}
+                    </button>
+                  )}
                   <button type="button" className="notes-go" onClick={listen} disabled={!notes.trim()}>
                     Read it back
                   </button>
@@ -187,9 +251,20 @@ export default function HallwayView({
                     </button>
                   )}
                 </div>
+                {voiceError && <p className="notes-error">{voiceError}</p>}
+
                 <p className="notes-privacy">
-                  This runs on your phone. Nothing is sent anywhere and nothing is kept. Type what
-                  you heard, not who said it.
+                  <strong>Typing stays on your phone.</strong> The matching runs here in the browser,
+                  nothing is transmitted, and nothing is kept.
+                  {voiceAvailable && (
+                    <>
+                      {' '}
+                      <strong>Speaking does not.</strong> Your browser sends the audio to a speech
+                      service to turn it into words, and for Chrome that service is Google's. If that
+                      is not right for what you are about to say, type it. Either way: say what you
+                      heard, not who said it.
+                    </>
+                  )}
                 </p>
               </div>
 
