@@ -10,8 +10,12 @@ import type {
   AccessCollision,
   BarrierAssessment,
   BarrierKind,
+  Caution,
   Cohort,
+  ConfidentFact,
+  ConnectorBrief,
   Contact,
+  CredibilityRisk,
   PathwayOption,
   PlanStep,
   Program,
@@ -389,13 +393,19 @@ function formatDayWindow(
   return `${dayLabel(start)} to ${dayLabel(end)}`;
 }
 
-/** Human-readable form of an ISO date, for text a person reads aloud on a call. */
-function longDate(dateIso: string): string {
-  return new Date(`${dateIso}T00:00:00-05:00`).toLocaleDateString('en-US', {
+/**
+ * Human-readable form of an ISO date, for text a person reads aloud on a call.
+ * Formatted in UTC from the date parts: a cohort date is a calendar date, and
+ * rendering it through a zone that changes offset in November silently shifts
+ * it by a day.
+ */
+export function longDate(dateIso: string): string {
+  const [year, month, day] = dateIso.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric',
     year: 'numeric',
-    timeZone: 'America/Chicago',
+    timeZone: 'UTC',
   });
 }
 
@@ -624,4 +634,216 @@ export function buildPlan(profile: SyntheticProfile, registry: ProgramRegistry):
 
 export function contactLine(contact: Contact): string {
   return [contact.phone, contact.email, contact.address].filter(Boolean).join(' | ');
+}
+
+/** How long before a connector should re-check a program fact before repeating it. */
+export const STALE_AFTER_DAYS = 30;
+
+/**
+ * The brief as plain text, for the way a connector actually passes things on:
+ * a text message, a WhatsApp forward, an email to someone's mother. Deliberately
+ * carries the limits and the read date, so the caveats travel with the facts
+ * rather than being stripped off in the retelling.
+ */
+export function briefToText(
+  brief: ConnectorBrief,
+  profile: SyntheticProfile,
+  registry: ProgramRegistry,
+): string {
+  const lines: string[] = [];
+  const read = longDate(registry.registry_meta.fetched_at.slice(0, 10));
+
+  lines.push(`WHAT I FOUND OUT (read ${read})`, '');
+
+  for (const fact of brief.canSay) {
+    lines.push(`- ${fact.label}: ${fact.value}`);
+  }
+
+  if (brief.handoffStep) {
+    lines.push('', 'THE CALL TO MAKE');
+    lines.push(brief.handoffStep.title);
+    if (brief.handoffStep.contact) {
+      lines.push(`${brief.handoffStep.contact.name}: ${contactLine(brief.handoffStep.contact)}`);
+    }
+    lines.push(`Ask exactly this: "${brief.handoffStep.confirmationQuestion}"`);
+  }
+
+  if (brief.coaching.length > 0) {
+    lines.push('', 'HEADS UP');
+    for (const note of brief.coaching) lines.push(`- ${note}`);
+  }
+
+  lines.push('', 'WHAT I CANNOT PROMISE');
+  for (const caution of brief.cannotPromise) {
+    lines.push(`- ${caution.claim} That is decided by ${caution.whoDecides}.`);
+  }
+
+  lines.push(
+    '',
+    `These details were read from public program pages on ${read} and can change without notice.`,
+    'Nothing here confirms that anyone qualifies for anything. Please check with the program directly.',
+    '',
+    `(Prepared from a demonstration tool. The example situation, ${profile.profileId}, is fictional.)`,
+  );
+
+  return lines.join('\n');
+}
+
+/**
+ * The connector brief.
+ *
+ * A connector's working capital is that people believe them. So this arranges the
+ * same plan around one question: what can I say out loud right now, and what is
+ * not mine to say? Everything in `canSay` carries the sentence it came from.
+ * Everything in `cannotPromise` names the office that actually decides it.
+ */
+export function buildConnectorBrief(
+  plan: SevenDayPlan,
+  registry: ProgramRegistry,
+): ConnectorBrief | null {
+  const option = plan.recommendedOption;
+  if (!option) return null;
+
+  const program = option.program;
+  const funding = registry.funding_paths.find((f) => program.funding_paths.includes(f.id));
+  const cohort = option.nextCohort;
+
+  const canSay: ConfidentFact[] = [
+    {
+      label: 'The program',
+      value: `${program.provider} runs "${program.program_name}"${
+        program.academy ? ` as part of its ${program.academy}` : ''
+      }.`,
+      sourceUrl: program.program_url,
+    },
+    {
+      label: 'What it leads to',
+      value: program.leads_to,
+      sourceUrl: program.program_url,
+    },
+  ];
+
+  if (typeof program.cost_usd === 'number') {
+    canSay.push({
+      label: 'The published price',
+      value:
+        program.cost_usd === 0
+          ? 'Historically free to students.'
+          : `$${program.cost_usd.toLocaleString()}, as published on the schedule.`,
+      sourceQuote: program.cost_source_quote,
+      sourceUrl: program.schedule_url ?? program.program_url,
+    });
+  }
+
+  if (cohort) {
+    canSay.push({
+      label: 'When it meets',
+      value: `${cohort.days}, ${cohort.time}, ${program.format.toLowerCase()}. The next published start is ${longDate(
+        cohort.start_date,
+      )}.`,
+      sourceQuote: program.format_source_quote,
+      sourceUrl: program.schedule_url ?? program.program_url,
+    });
+  }
+
+  const entry = program.requirements.filter((r) => r.kind === 'eligibility' || r.kind === 'document');
+  for (const requirement of entry) {
+    canSay.push({
+      label: 'What they will be asked for',
+      value: requirement.label,
+      sourceQuote: requirement.source_quote,
+      sourceUrl: requirement.source_url,
+    });
+  }
+
+  if (funding) {
+    canSay.push({
+      label: 'That help with the cost exists',
+      value: `A ${funding.name} may cover ${funding.covers.toLowerCase()}. It is worth asking about.`,
+      sourceQuote: funding.determined_by_source_quote,
+      sourceUrl: funding.source_url,
+    });
+  }
+
+  const cannotPromise: Caution[] = [
+    {
+      claim: 'That they will get a seat.',
+      because: 'Enrollment and any late entry are the college\'s call, and cohorts fill.',
+      whoDecides: program.contacts[0]?.name ?? program.provider,
+      sourceUrl: program.program_url,
+    },
+  ];
+
+  if (funding) {
+    cannotPromise.push({
+      claim: 'That the course will be paid for.',
+      because: funding.determined_by_source_quote,
+      whoDecides: funding.determined_by,
+      sourceQuote: funding.determined_by_source_quote,
+      sourceUrl: funding.source_url,
+    });
+    for (const unknown of funding.unknowns) {
+      cannotPromise.push({
+        claim: 'How quickly the funding answer comes back.',
+        because: unknown,
+        whoDecides: funding.contacts[0]?.name ?? funding.determined_by,
+        sourceUrl: funding.source_url,
+      });
+    }
+  }
+
+  const conditional = program.requirements.filter((r) => r.conditional);
+  for (const requirement of conditional) {
+    // Requirement labels carry their condition inline ("X, only if Y"). Split it
+    // so the claim reads as a sentence and the condition becomes the reason.
+    const [what, condition] = requirement.label.split(/,\s*only if\s*/i);
+    cannotPromise.push({
+      claim: `Whether the ${what.trim()} applies to them.`,
+      because: condition
+        ? `It applies only if ${condition.trim()}, and which case someone falls into is settled at intake, not in advance.`
+        : 'The requirement is conditional, and which case someone falls into is settled at intake.',
+      whoDecides: program.contacts[0]?.name ?? program.provider,
+      sourceQuote: requirement.source_quote,
+      sourceUrl: requirement.source_url,
+    });
+  }
+
+  const flagged = program.data_quality_flags.filter((f) => f.severity === 'confirm_before_relying');
+  for (const flag of flagged) {
+    cannotPromise.push({
+      claim: 'The exact dates, until someone confirms them.',
+      because: flag.note,
+      whoDecides: program.contacts[0]?.name ?? program.provider,
+      sourceQuote: flag.source_quote,
+      sourceUrl: flag.source_url,
+    });
+  }
+
+  const credibilityRisks: CredibilityRisk[] = plan.options
+    .filter((o) => o.blocking)
+    .map((o) => ({
+      program: `${o.program.provider} - ${o.program.program_name}`,
+      risk: o.blockingReason ?? 'This program has an unresolved data-quality problem.',
+      whatToSayInstead:
+        'If someone brings this program up, say you have heard of it and that you want to check whether it is still running before sending them. Then make the call yourself. Sending someone to a program that has closed costs you more than it costs the program.',
+      sourceQuote: o.program.data_quality_flags[0]?.source_quote,
+      sourceUrl: o.program.program_url,
+    }));
+
+  const coaching = plan.collisions.map((c) => `${c.title} ${c.mitigation}`);
+  if (program.in_person_help) {
+    coaching.push(
+      `Tell them the enrollment office keeps ${program.in_person_help.hours}, so the call has to happen on a weekday. That is worth saying out loud before they plan around it.`,
+    );
+  }
+
+  return {
+    canSay,
+    cannotPromise,
+    handoffStep: plan.steps[0] ?? null,
+    coaching,
+    credibilityRisks,
+    readOn: registry.registry_meta.fetched_at,
+    staleAfterDays: STALE_AFTER_DAYS,
+  };
 }

@@ -2,9 +2,10 @@
 
 **Birmingham Claude Impact Lab, August 28, 2026. Challenge 3: Make Economic Opportunity Easier to Reach.**
 
-A seven-day action planner for technology reskilling in Birmingham. It turns public
-program pages into a sequence a person can act on this week, where every line
-carries the source it came from and the named human who must confirm it.
+A briefing tool for Birmingham's community connectors: the people who already have
+the network and already get asked. It turns public program pages into something a
+connector can say out loud today, with the source attached, the limits stated, and a
+warm handoff at the end.
 
 **The tool does not decide anything.** It does not score people, predict who will
 succeed, or assert that anyone is eligible for anything. Where the public pages do
@@ -23,19 +24,37 @@ not answer a question, it emits the question instead of a guess.
 ## Challenge and primary user
 
 - **Challenge:** 3 - Make Economic Opportunity Easier to Reach
-- **Primary user:** A career-changing worker pursuing technology reskilling, and the
-  workforce navigator sitting beside them.
+- **Primary user:** A community connector. Both the informal kind (a neighborhood
+  association officer, a pastor, a barber, a librarian) and the staffed kind (a
+  resource navigator or workforce staffer at a partner organization).
 
 ## Problem and repeated workflow
 
-The repeated moment is "what can I do next?"
+The repeated moment is **"someone just asked me what they should do."**
 
-A worker on a daytime retail shift wants an entry-level IT support role. Birmingham
-has real programs that serve exactly this person. The friction is not a shortage of
-programs, and it is not a shortage of directories listing them. It is that turning a
-program page into a sequence of things to do *this week* takes a navigator most of an
-hour per person, because the facts that decide whether the pathway is reachable are
-spread across pages that cannot see each other.
+Birmingham already has a connector network, and a formal one. The city is divided into
+23 communities and 99 neighborhoods, each neighborhood association electing a president,
+vice president, and secretary: roughly 297 elected community connectors, a structure
+running since 1974. The 23 community presidents form the Citizens Advisory Board, which
+meets monthly with the mayor and council.
+
+That network is under strain. [BirminghamWatch reported in February 2025](https://birminghamwatch.org/2025/02/21/birminghams-neighborhood-association-network-faces-challenges-at-50/)
+that per-neighborhood funding was cut from $10,000 to $2,000 a year, city-funded
+neighborhood newsletters were eliminated, and some association meetings now draw three
+to five residents.
+
+Strip a connector of budget and newsletters and what remains is their personal network
+and their credibility. That is the asset this project is built to protect.
+
+Because the connector's problem is not finding programs. It is answering with
+confidence and without risk. Someone asks after a meeting. The connector half-remembers
+a program, or repeats a flyer that is two years old. If they are right, someone's life
+changes. If they are wrong, they have spent the one thing that makes them useful, and
+the next person does not ask.
+
+The facts that decide whether a pathway is reachable are spread across pages that
+cannot see each other, so being right requires an hour of research the connector does
+not have in the moment.
 
 Three of those facts, all true at once, all on separate pages:
 
@@ -51,7 +70,22 @@ capable. It fails on sequencing.
 
 ## What the project does
 
-Pick a synthetic profile. The app produces:
+Pick a synthetic profile. The connector gets a brief built around four questions:
+
+- **Say this. It is sourced.** Facts read off a public page today, each with the
+  verbatim quote attached so the connector can show their work.
+- **Do not promise this. It is not yours to promise.** Every limit names the office
+  that actually decides it, which turns a disappointment into a referral.
+- **Send them here, and give them the words.** A named human, a phone number, and the
+  exact question to ask, so the person arrives able to advocate for themselves.
+- **This one could cost you.** Programs a connector has heard of but should not vouch
+  for today, with what to say instead.
+
+Plus a freshness contract: the brief states the date it was read and declares itself
+stale after 30 days, because a page that goes out of date is merely wrong while a
+person who goes out of date stops being the one people ask.
+
+Behind that, under "Show the working", the full analysis:
 
 - **Barriers**, read from the profile's own words, each naming the phrase that
   triggered it so a navigator can check the reasoning by eye.
@@ -66,8 +100,10 @@ Pick a synthetic profile. The app produces:
   confirms it, and the exact question to ask them. Steps that require reaching an
   office are moved off weekends.
 - **Open questions**: what the tool does not know, stated rather than filled in.
-- **A navigator view**: barrier frequency across the whole synthetic caseload, showing
-  the pattern without exposing any individual profile.
+- **An organizer view**: barrier frequency across the whole synthetic caseload, showing
+  the pattern without exposing any individual profile. This is the view a connector
+  carries into a Citizens Advisory Board meeting or a partner conversation, where the
+  question is not "what should this person do" but "what keeps stopping everyone".
 
 ### The finding
 
@@ -207,18 +243,22 @@ npm run build
 
 ## Next step toward a pilot
 
-**Central Six AlabamaWorks publishes one number: how long a WIOA eligibility
-determination currently takes.**
+**Birmingham's Community Resource Services Division circulates one connector brief to
+the 99 neighborhood associations, and collects what the officers get asked.**
 
-That single unpublished number is what makes the ordering problem invisible. With it, a
-navigator can tell a person whether a cohort is reachable before they invest a week, and
-this planner can convert its "start this conversation today" step into a real deadline.
-It requires no new system, no data-sharing agreement, and no software adoption. Central
-Six is reachable at 205-458-8966 ext. 1350 and covers the six counties this pathway sits
-in.
+The division already exists to be the liaison between neighborhood associations and city
+government, already convenes these officers, and is reachable at (205) 297-8192. It does
+not need to adopt software. It needs to hand its officers one page they can trust, and
+tell us where it was wrong.
 
-The follow-on ask, for a navigator team at Central Six or Jefferson State: run the
-planner against ten real intake conversations and record where its ordering was wrong.
+That is the pilot: one pathway, one printed brief, one cycle of the Citizens Advisory
+Board's monthly meeting. The measure of success is not usage. It is whether an officer
+says "I used this and it held up," or "I used this and it was out of date."
+
+The unblocking ask that runs alongside it: **Central Six AlabamaWorks publishes how long
+a WIOA eligibility determination currently takes.** That single unpublished number is
+what makes the ordering problem invisible, and with it the brief's "start this
+conversation today" becomes a real deadline. Central Six is at 205-458-8966 ext. 1350.
 
 ## Demo video
 

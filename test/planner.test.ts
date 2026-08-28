@@ -4,11 +4,14 @@ import { readFileSync } from 'node:fs';
 
 import { parseCsv } from '../src/lib/csv.ts';
 import {
+  briefToText,
+  buildConnectorBrief,
   buildPlan,
   chooseRecommended,
   daysUntil,
   detectBarriers,
   goalAlignment,
+  longDate,
   nextJoinableCohort,
 } from '../src/lib/planner.ts';
 import type { ProgramRegistry, SyntheticProfile } from '../src/types.ts';
@@ -168,4 +171,64 @@ test('open questions are surfaced rather than filled in', () => {
     plan.openQuestions.some((q) => /how long/i.test(q)),
     'the unknown determination time must be stated out loud',
   );
+});
+
+test('cohort dates render as calendar dates, not shifted by a timezone change', () => {
+  // November 3 falls after CST resumes; formatting through a fixed -05:00
+  // offset silently rendered it as November 2.
+  assert.equal(longDate('2026-11-03'), 'November 3, 2026');
+  assert.equal(longDate('2026-08-24'), 'August 24, 2026');
+  assert.equal(longDate('2027-02-22'), 'February 22, 2027');
+});
+
+test('the connector brief separates what can be said from what cannot be promised', () => {
+  const plan = buildPlan(byId('PROF-04'), registry);
+  const brief = buildConnectorBrief(plan, registry)!;
+
+  assert.ok(brief.canSay.length >= 5, 'a connector needs real facts to offer');
+  for (const fact of brief.canSay) {
+    assert.ok(fact.sourceUrl, `"${fact.label}" must be traceable to a page`);
+  }
+
+  assert.ok(brief.cannotPromise.length >= 3);
+  for (const caution of brief.cannotPromise) {
+    assert.ok(caution.whoDecides.length > 0, 'every caution must name the office that decides');
+  }
+
+  // Funding is the one a connector is most tempted to promise.
+  assert.ok(brief.cannotPromise.some((c) => /paid for/i.test(c.claim)));
+});
+
+test('a program that could burn a connector is surfaced as a credibility risk', () => {
+  const plan = buildPlan(byId('PROF-04'), registry);
+  const brief = buildConnectorBrief(plan, registry)!;
+  assert.equal(brief.credibilityRisks.length, 1);
+  assert.match(brief.credibilityRisks[0].program, /Innovate Birmingham/);
+  assert.match(brief.credibilityRisks[0].whatToSayInstead, /check whether it is still running/i);
+});
+
+test('an uncovered pathway produces no connector brief rather than a guess', () => {
+  const plan = buildPlan(byId('PROF-02'), registry);
+  assert.equal(buildConnectorBrief(plan, registry), null);
+});
+
+test('the shareable text carries the caveats along with the facts', () => {
+  const plan = buildPlan(byId('PROF-04'), registry);
+  const brief = buildConnectorBrief(plan, registry)!;
+  const text = briefToText(brief, byId('PROF-04'), registry);
+
+  assert.match(text, /WHAT I CANNOT PROMISE/);
+  assert.match(text, /read August 28, 2026/);
+  assert.match(text, /can change without notice/);
+  assert.match(text, /fictional/i, 'the synthetic origin must survive the forward');
+  assert.match(text, /\(205\) 582-5200/, 'the handoff number must be in the message');
+  assert.ok(!text.includes('undefined'), 'no undefined leaking into a message a person sends');
+});
+
+test('a conditional requirement reads as a sentence, not a mangled label', () => {
+  const plan = buildPlan(byId('PROF-04'), registry);
+  const brief = buildConnectorBrief(plan, registry)!;
+  const conditional = brief.cannotPromise.find((c) => /Accuplacer/i.test(c.claim))!;
+  assert.equal(conditional.claim, 'Whether the Accuplacer Reading exam applies to them.');
+  assert.match(conditional.because, /only if the applicant holds an occupational diploma/);
 });

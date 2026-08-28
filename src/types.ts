@@ -207,6 +207,46 @@ export interface AccessCollision {
   sourceQuotes: string[];
 }
 
+/** A fact a connector can state out loud, with the receipt attached. */
+export interface ConfidentFact {
+  label: string;
+  value: string;
+  sourceQuote?: string;
+  sourceUrl?: string;
+}
+
+/** Something a connector must not say, and the reason it is not theirs to say. */
+export interface Caution {
+  claim: string;
+  because: string;
+  whoDecides: string;
+  sourceQuote?: string;
+  sourceUrl?: string;
+}
+
+export interface CredibilityRisk {
+  program: string;
+  risk: string;
+  whatToSayInstead: string;
+  sourceQuote?: string;
+  sourceUrl?: string;
+}
+
+/**
+ * What a community connector needs when someone stops them and asks
+ * "what should I do?" Built from the same plan, arranged for the person
+ * answering rather than the person asking.
+ */
+export interface ConnectorBrief {
+  canSay: ConfidentFact[];
+  cannotPromise: Caution[];
+  handoffStep: PlanStep | null;
+  coaching: string[];
+  credibilityRisks: CredibilityRisk[];
+  readOn: string;
+  staleAfterDays: number;
+}
+
 export interface SevenDayPlan {
   profile: SyntheticProfile;
   barriers: BarrierAssessment[];
