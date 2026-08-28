@@ -1,122 +1,125 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useMemo, useState } from 'react';
+import type { ProgramRegistry, SyntheticProfile } from './types';
+import { loadProfiles, loadRegistry } from './lib/load';
+import { buildPlan } from './lib/planner';
+import PlanView from './components/PlanView';
+import NavigatorView from './components/NavigatorView';
+import './App.css';
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+/** Demo presets live in the URL hash so each step of a demo is one clickable link. */
+function readHash(): string {
+  return window.location.hash.replace(/^#/, '') || 'PROF-04';
 }
 
-export default App
+export default function App() {
+  const [profiles, setProfiles] = useState<SyntheticProfile[] | null>(null);
+  const [registry, setRegistry] = useState<ProgramRegistry | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<string>(readHash());
+
+  useEffect(() => {
+    Promise.all([loadProfiles(), loadRegistry()])
+      .then(([p, r]) => {
+        setProfiles(p);
+        setRegistry(r);
+      })
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : String(e)));
+  }, []);
+
+  useEffect(() => {
+    const onHash = () => setView(readHash());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  const plan = useMemo(() => {
+    if (!profiles || !registry || view === 'navigator') return null;
+    const profile = profiles.find((p) => p.profileId === view) ?? profiles[0];
+    return profile ? buildPlan(profile, registry) : null;
+  }, [profiles, registry, view]);
+
+  if (error) {
+    return (
+      <main className="shell">
+        <div className="error">
+          <h1>Could not load the data</h1>
+          <p>{error}</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!profiles || !registry) {
+    return (
+      <main className="shell">
+        <p className="loading">Loading synthetic profiles and the program registry...</p>
+      </main>
+    );
+  }
+
+  return (
+    <main className="shell">
+      <header className="masthead">
+        <div>
+          <h1>Seven-Day Pathway</h1>
+          <p className="tagline">
+            Technology reskilling in Birmingham: what a person can actually finish in the next seven
+            days, and who has to confirm each piece.
+          </p>
+        </div>
+        <div className="legend">
+          <span className="badge badge-synthetic">Synthetic person</span>
+          <span className="badge badge-real">Real program, read {new Date(registry.registry_meta.fetched_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+        </div>
+      </header>
+
+      <p className="standfirst">
+        This tool does not decide anything. It turns public program pages into a sequence a person can
+        act on this week, and every line carries the source it came from and the named human who must
+        confirm it.
+      </p>
+
+      <nav className="picker">
+        {profiles.map((p) => (
+          <a
+            key={p.profileId}
+            href={`#${p.profileId}`}
+            className={view === p.profileId ? 'active' : ''}
+            title={p.goal}
+          >
+            {p.profileId}
+            <span className="picker-sub">{p.pathway}</span>
+          </a>
+        ))}
+        <a href="#navigator" className={view === 'navigator' ? 'active nav-view' : 'nav-view'}>
+          Navigator view
+          <span className="picker-sub">all {profiles.length} profiles</span>
+        </a>
+      </nav>
+
+      {view === 'navigator' ? (
+        <NavigatorView profiles={profiles} registry={registry} />
+      ) : plan ? (
+        <PlanView plan={plan} />
+      ) : null}
+
+      <footer className="colophon">
+        <p>
+          <strong>Nothing here is a confirmation.</strong> {registry.registry_meta.confirmation_notice}
+        </p>
+        <p>
+          <strong>How the registry was built.</strong> {registry.registry_meta.method}
+        </p>
+        <p>
+          Built at the Birmingham Claude Impact Lab, August 28, 2026. Synthetic profiles come from the
+          event's own dataset. Prior research on Jefferson County's 34 municipal governments is
+          published separately at{' '}
+          <a href="https://onecounty.thenewguard.ai" target="_blank" rel="noreferrer">
+            onecounty.thenewguard.ai
+          </a>{' '}
+          and is cited here as background only; no code or data from it appears in this project.
+        </p>
+      </footer>
+    </main>
+  );
+}
