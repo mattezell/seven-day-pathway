@@ -91,6 +91,32 @@ export interface InPersonHelp {
   source_url?: string;
 }
 
+/**
+ * One institutional sentence and the plain-speech version a connector can say
+ * out loud. The verbatim original stays attached so the translation is auditable
+ * the same way every other extracted value is: you can see what was on the page
+ * and judge whether the plain version is fair to it.
+ */
+export interface PlainTranslation {
+  page_says: string;
+  you_say: string;
+  source_url: string;
+}
+
+/**
+ * The spoken register for one program. This is data, not generated prose, so
+ * that adding a program means writing its words down rather than trusting a
+ * model to invent them at runtime.
+ */
+export interface PlainLanguage {
+  /** How the job is named in a sentence: "help desk work". */
+  job_said_out_loud: string;
+  /** What that job actually is, in a clause that follows "That is ...". */
+  the_job_is: string;
+  what_you_get: string;
+  translations: PlainTranslation[];
+}
+
 /** A real training program, read from a public page at `fetched_at`. */
 export interface Program {
   id: string;
@@ -115,6 +141,12 @@ export interface Program {
   funding_paths: string[];
   contacts: Contact[];
   in_person_help?: InPersonHelp;
+  /**
+   * Present only when the public page said enough to translate honestly. Its
+   * absence is a result, not a gap to fill in later: a program nobody can
+   * describe plainly is one a connector should not be describing plainly.
+   */
+  plain?: PlainLanguage;
   campus?: string;
   recommendation?: 'do_not_plan_around_until_confirmed';
   data_quality_flags: DataQualityFlag[];

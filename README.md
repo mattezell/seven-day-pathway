@@ -108,6 +108,10 @@ capable. It fails on sequencing.
 The primary screen is phone-shaped and has three beats, because that is the shape of the
 moment it serves.
 
+Across the top, a **program switcher**: the connector picks whichever thing the person
+actually asked about. All five registry programs are reachable from it, including the
+two that cannot be translated.
+
 **1. Translate.** The program in plain speech: what it is, what you get, when it meets,
 what it costs, what you need. Then *what usually stops people*, which is derived from the
 registry rather than written by hand: a cohort that already started, payment due at
@@ -123,6 +127,42 @@ is built against is prose drifting back into the institutional register.
 
 **3. Hand it off.** A plain-text message to send before walking away, leading with the
 funding call, because that ordering is what decides whether any of the rest works.
+
+### The translation is data, and it is auditable
+
+The plain speech is not generated at runtime. Each program carries a `plain` block in
+the registry, and every plain sentence keeps the **verbatim published sentence it
+replaces** beside it. Under *"Where these words came from"* the connector sees both:
+
+> **The page says** ONLINE - LIVE INSTRUCTION
+> **You say** You do it from home, but at a set time, with a teacher live on the screen.
+> It is not something you click through on your own whenever you get a minute.
+
+Same discipline as every other value in this project. You can see the source sentence
+and judge whether the translation is fair before you repeat it. Thirteen of these pairs
+across three programs, each pinned to the page it came from.
+
+### It refuses two of the five programs
+
+Two programs in the registry produce **no words at all**, on purpose:
+
+- **Lawson State** publishes that it runs IT workforce training but publishes no cost,
+  no cohort dates, and no entry requirements. There is nothing specific to say.
+- **Innovate Birmingham** cannot be confirmed to be operating. Its site carries a 2026
+  copyright and live "Join Now" calls to action, its published phone number is an
+  unfilled template placeholder, and a third-party report says it stopped offering
+  courses in 2023.
+
+For both, the screen says *"I am not going to give you words for this one,"* gives the
+reason, and gives the connector a sentence that is still useful:
+
+> Say "Lawson State runs training in this and I do not know the details, let me get you
+> the number." Then give them the number. Being the person who admits that is worth more
+> than being the person who guessed.
+
+They stay on the list because a directory would list them, someone would spend a week on
+them, and the connector who sent them there would wear it. A test asserts that a program
+flagged `do_not_rely` can never produce a script.
 
 Across the top sit optional **situation chips** (money is tight, no car, no computer,
 works days, no diploma, on SNAP, veteran, has a disability). Tapping one changes what the
@@ -227,7 +267,7 @@ src/components/FundingDoors  routes to paying for it, and who decides each
 src/components/PlanView      per-profile plan, "show the working"
 src/components/NavigatorView caseload aggregate
 test/planner.test.ts         27 tests
-test/hallway.test.ts         11 tests, including the reading-level gate
+test/hallway.test.ts         17 tests, including the reading-level gate
 ```
 
 The planner is a set of named rules in one reviewable file. Each rule states its own
@@ -276,7 +316,7 @@ git clone https://github.com/mattezell/seven-day-pathway
 cd seven-day-pathway
 npm install
 npm run dev      # http://localhost:5173/#PROF-04
-npm test         # 38 tests
+npm test         # 44 tests
 npm run build
 ```
 
@@ -294,11 +334,14 @@ npm run build
   to the profile's named handoff owner, instead of a fabricated match.
 - The hallway flow runs end to end on a phone: three beats, eight situation chips, a
   copyable handoff message.
-- The script holds a grade 2.5 reading level across every combination of chips, enforced
-  by test, and repeats no sentence when several chips are tapped at once.
+- The script holds a grade 2.3 to 3.4 reading level across every combination of chips and
+  every translatable program, enforced by test, and repeats no sentence when several
+  chips are tapped at once.
+- Three of the five programs translate; the other two refuse and say why, and the refusal
+  is enforced by test rather than by hand.
 - Five funding paths are listed with the deciding office named on each, and the two that
   could not be fully verified are labeled as such.
-- 38 tests pass. Typecheck and lint clean.
+- 44 tests pass. Typecheck and lint clean.
 
 ## Known limitations and simulated elements
 

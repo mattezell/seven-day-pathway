@@ -1228,3 +1228,143 @@ code {
     min-height: 0;
   }
 }
+
+/* The program switcher. Which thing did they actually ask about. */
+.switcher {
+  margin-bottom: 0.9rem;
+}
+
+.switcher-label {
+  margin: 0 0 0.4rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.switcher-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.pill-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.pill-warn {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--stop);
+}
+
+.pill-mute {
+  color: var(--ink-faint);
+}
+
+/* The refusal. Shown instead of the three beats when the page did not say
+   enough to say anything out loud. */
+.refusal {
+  border-left: 4px solid var(--stop);
+}
+
+.refusal h3 {
+  color: var(--stop);
+}
+
+.refusal-why {
+  color: var(--ink-soft);
+}
+
+.refusal-instead {
+  padding: 0.8rem 0.9rem;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.refusal-note {
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+}
+
+/* The audit trail behind the plain words. */
+.translations {
+  margin-top: 1.1rem;
+  border-top: 1px solid var(--line);
+  padding-top: 0.8rem;
+}
+
+.translations summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.translations-note {
+  margin: 0.6rem 0 0.9rem;
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+}
+
+.translation {
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px dashed var(--line);
+}
+
+.translation:last-child {
+  border-bottom: none;
+}
+
+.translation p {
+  margin: 0 0 0.4rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.tlabel {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 0.15rem;
+}
+
+.page-says {
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
+.you-say {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.translation a {
+  font-size: 0.72rem;
+  color: var(--ink-faint);
+  word-break: break-all;
+}

@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
-import type { ProgramRegistry, SevenDayPlan } from '../types';
+import type { Program, ProgramRegistry, SevenDayPlan } from '../types';
 import {
   SITUATION_FACTS,
   buildHandoffMessage,
   buildPlainCard,
   buildScript,
   readingGrade,
+  translationStatus,
 } from '../lib/hallway';
 
 type Beat = 'translate' | 'say' | 'hand';
@@ -15,6 +16,11 @@ const BEATS: { id: Beat; label: string; sub: string }[] = [
   { id: 'say', label: 'Say it', sub: '90 seconds' },
   { id: 'hand', label: 'Send it', sub: 'before you walk away' },
 ];
+
+/** The pill label for a program, in the register the connector would use. */
+function shortLabel(program: Program): string {
+  return program.plain?.job_said_out_loud ?? program.provider_short;
+}
 
 /**
  * The hallway flow. One column, big targets, three beats.
@@ -33,23 +39,36 @@ export default function HallwayView({
   const [beat, setBeat] = useState<Beat>('translate');
   const [facts, setFacts] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
+  const [programId, setProgramId] = useState<string | null>(null);
 
-  const option = plan.recommendedOption;
+  const recommended = plan.recommendedOption?.program ?? null;
+
+  // The recommended program leads, but every program in the registry is
+  // reachable, including the two that cannot be translated. Those two are the
+  // point: a connector needs to know which programs they must not vouch for.
+  const programs = useMemo(() => {
+    const rest = registry.programs.filter((p) => p.id !== recommended?.id);
+    return recommended ? [recommended, ...rest] : rest;
+  }, [registry, recommended]);
+
+  const program = programs.find((p) => p.id === programId) ?? programs[0] ?? null;
+
+  const status = useMemo(() => (program ? translationStatus(program) : null), [program]);
 
   const card = useMemo(
-    () => (option ? buildPlainCard(option.program, registry, facts) : null),
-    [option, registry, facts],
+    () => (program ? buildPlainCard(program, registry, facts) : null),
+    [program, registry, facts],
   );
   const script = useMemo(
-    () => (option ? buildScript(option.program, facts) : null),
-    [option, facts],
+    () => (program ? buildScript(program, facts) : null),
+    [program, facts],
   );
   const message = useMemo(
-    () => (option ? buildHandoffMessage(option.program, registry, facts, plan.profile) : ''),
-    [option, registry, facts, plan.profile],
+    () => (program && card ? buildHandoffMessage(program, registry, facts, plan.profile) : ''),
+    [program, card, registry, facts, plan.profile],
   );
 
-  if (!option || !card || !script) {
+  if (!program || !status) {
     return (
       <div className="hallway">
         <section className="empty">
@@ -77,125 +96,186 @@ export default function HallwayView({
     }
   };
 
-  const scriptText = [...script.lines, script.theAsk].join(' ');
-  const grade = readingGrade(scriptText);
-
   return (
     <div className="hallway">
       <div className="phone">
-        <div className="beats">
-          {BEATS.map((b, i) => (
-            <button
-              key={b.id}
-              type="button"
-              className={beat === b.id ? 'beat active' : 'beat'}
-              onClick={() => setBeat(b.id)}
-            >
-              <span className="beat-n">{i + 1}</span>
-              <span className="beat-label">{b.label}</span>
-              <span className="beat-sub">{b.sub}</span>
-            </button>
-          ))}
+        <div className="switcher">
+          <p className="switcher-label">They asked about</p>
+          <div className="switcher-pills">
+            {programs.map((p) => {
+              const ok = translationStatus(p).canTranslate;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={`pill${p.id === program.id ? ' pill-on' : ''}${ok ? '' : ' pill-mute'}`}
+                  onClick={() => setProgramId(p.id)}
+                >
+                  {shortLabel(p)}
+                  {!ok && <span className="pill-warn" aria-label="do not vouch for this one" />}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <details className="whatyouknow">
-          <summary>
-            What did they tell you? <span className="chip-count">{facts.length} tapped</span>
-          </summary>
-          <div className="chips">
-            {SITUATION_FACTS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                className={facts.includes(f.id) ? 'chip on' : 'chip'}
-                onClick={() => toggleFact(f.id)}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-          <p className="chips-note">
-            Nothing is saved or sent. This only changes what you say next. Do not write down a
-            person's business on their behalf.
-          </p>
-        </details>
-
-        {beat === 'translate' && (
-          <div className="beat-body">
-            <h3>What it actually is</h3>
-            <dl className="plain">
-              <dt>What it is</dt>
-              <dd>{card.whatItIs}</dd>
-              <dt>What you get</dt>
-              <dd>{card.whatYouGet}</dd>
-              <dt>When it meets</dt>
-              <dd>{card.whenItMeets}</dd>
-              <dt>What it costs</dt>
-              <dd>{card.whatItCosts}</dd>
-              <dt>What you need</dt>
-              <dd>
-                <ul>
-                  {card.whatYouNeed.map((need) => (
-                    <li key={need}>{need}</li>
-                  ))}
-                </ul>
-              </dd>
-            </dl>
-
-            <h4 className="stops-head">What usually stops people</h4>
-            <ul className="stops">
-              {card.whatUsuallyStopsPeople.map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </ul>
-
-            <p className="confirm-flag">
-              Confirm with the program directly: <strong>{card.confirmWith}</strong>. This was looked
-              up on {new Date(card.readOn).toLocaleDateString('en-US', { dateStyle: 'long' })} and it
-              can change.
+        {!status.canTranslate ? (
+          <div className="beat-body refusal">
+            <h3>I am not going to give you words for this one.</h3>
+            <p className="refusal-why">{status.refusal}</p>
+            <h4>Say this instead</h4>
+            <p className="refusal-instead">{status.whatToSayInstead}</p>
+            <p className="refusal-note">
+              This program stays on the list on purpose. A directory would show it, someone would
+              spend a week on it, and the connector who sent them there would wear it.
             </p>
           </div>
-        )}
-
-        {beat === 'say' && (
-          <div className="beat-body">
-            <h3>
-              Read this out loud
-              <span className="timer">about {script.estimatedSeconds} seconds</span>
-            </h3>
-            <div className="script-lines">
-              {script.lines.map((line) => (
-                <p key={line}>{line}</p>
+        ) : (
+          <>
+            <div className="beats">
+              {BEATS.map((b, i) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  className={beat === b.id ? 'beat active' : 'beat'}
+                  onClick={() => setBeat(b.id)}
+                >
+                  <span className="beat-n">{i + 1}</span>
+                  <span className="beat-label">{b.label}</span>
+                  <span className="beat-sub">{b.sub}</span>
+                </button>
               ))}
             </div>
-            <div className="the-ask">
-              <p className="ask-label">Then close. One ask, not a list.</p>
-              <p className="ask-text">{script.theAsk}</p>
-            </div>
 
-            <details className="tips">
-              <summary>How to ask about money and health without prying</summary>
-              <ul>
-                {script.askingTips.map((tip) => (
-                  <li key={tip}>{tip}</li>
+            <details className="whatyouknow">
+              <summary>
+                What did they tell you? <span className="chip-count">{facts.length} tapped</span>
+              </summary>
+              <div className="chips">
+                {SITUATION_FACTS.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    className={facts.includes(f.id) ? 'chip on' : 'chip'}
+                    onClick={() => toggleFact(f.id)}
+                  >
+                    {f.label}
+                  </button>
                 ))}
-              </ul>
+              </div>
+              <p className="chips-note">
+                Nothing is saved or sent. This only changes what you say next. Do not write down a
+                person's business on their behalf.
+              </p>
             </details>
 
-            <p className="grade">
-              Written to a grade {grade.toFixed(1)} reading level, and tested to stay there.
-            </p>
-          </div>
-        )}
+            {beat === 'translate' && card && (
+              <div className="beat-body">
+                <h3>What it actually is</h3>
+                <dl className="plain">
+                  <dt>What it is</dt>
+                  <dd>{card.whatItIs}</dd>
+                  <dt>What you get</dt>
+                  <dd>{card.whatYouGet}</dd>
+                  <dt>When it meets</dt>
+                  <dd>{card.whenItMeets}</dd>
+                  <dt>What it costs</dt>
+                  <dd>{card.whatItCosts}</dd>
+                  <dt>What you need</dt>
+                  <dd>
+                    <ul>
+                      {card.whatYouNeed.map((need) => (
+                        <li key={need}>{need}</li>
+                      ))}
+                    </ul>
+                  </dd>
+                </dl>
 
-        {beat === 'hand' && (
-          <div className="beat-body">
-            <h3>Send it before you walk away</h3>
-            <button type="button" className="share-button big" onClick={() => copy(message)}>
-              {copied ? 'Copied. Now paste it into a message.' : 'Copy the message'}
-            </button>
-            <pre className="message">{message}</pre>
-          </div>
+                <h4 className="stops-head">What usually stops people</h4>
+                <ul className="stops">
+                  {card.whatUsuallyStopsPeople.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+
+                <details className="translations">
+                  <summary>
+                    Where these words came from{' '}
+                    <span className="chip-count">{card.translations.length} lines</span>
+                  </summary>
+                  <p className="translations-note">
+                    Every plain sentence replaces one the program actually published. Both are here
+                    so you can judge whether the translation is fair before you repeat it.
+                  </p>
+                  {card.translations.map((t) => (
+                    <div key={t.page_says} className="translation">
+                      <p className="page-says">
+                        <span className="tlabel">The page says</span>
+                        {t.page_says}
+                      </p>
+                      <p className="you-say">
+                        <span className="tlabel">You say</span>
+                        {t.you_say}
+                      </p>
+                      <a href={t.source_url} target="_blank" rel="noreferrer">
+                        {t.source_url}
+                      </a>
+                    </div>
+                  ))}
+                </details>
+
+                <p className="confirm-flag">
+                  Confirm with the program directly: <strong>{card.confirmWith}</strong>. This was
+                  looked up on{' '}
+                  {new Date(card.readOn).toLocaleDateString('en-US', { dateStyle: 'long' })} and it
+                  can change.
+                </p>
+              </div>
+            )}
+
+            {beat === 'say' && script && (
+              <div className="beat-body">
+                <h3>
+                  Read this out loud
+                  <span className="timer">about {script.estimatedSeconds} seconds</span>
+                </h3>
+                <div className="script-lines">
+                  {script.lines.map((line) => (
+                    <p key={line}>{line}</p>
+                  ))}
+                </div>
+                <div className="the-ask">
+                  <p className="ask-label">Then close. One ask, not a list.</p>
+                  <p className="ask-text">{script.theAsk}</p>
+                </div>
+
+                <details className="tips">
+                  <summary>How to ask about money and health without prying</summary>
+                  <ul>
+                    {script.askingTips.map((tip) => (
+                      <li key={tip}>{tip}</li>
+                    ))}
+                  </ul>
+                </details>
+
+                <p className="grade">
+                  Written to a grade{' '}
+                  {readingGrade([...script.lines, script.theAsk].join(' ')).toFixed(1)} reading
+                  level, and tested to stay there.
+                </p>
+              </div>
+            )}
+
+            {beat === 'hand' && (
+              <div className="beat-body">
+                <h3>Send it before you walk away</h3>
+                <button type="button" className="share-button big" onClick={() => copy(message)}>
+                  {copied ? 'Copied. Now paste it into a message.' : 'Copy the message'}
+                </button>
+                <pre className="message">{message}</pre>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

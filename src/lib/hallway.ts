@@ -13,7 +13,13 @@
  * is in plain speech, say it out loud in ninety seconds, hand it over before
  * walking away.
  */
-import type { FundingPath, Program, ProgramRegistry, SyntheticProfile } from '../types.ts';
+import type {
+  FundingPath,
+  PlainTranslation,
+  Program,
+  ProgramRegistry,
+  SyntheticProfile,
+} from '../types.ts';
 import { fundingPathsFor, longDate, nextJoinableCohort } from './planner.ts';
 
 /**
@@ -91,6 +97,60 @@ export const SITUATION_FACTS: SituationFact[] = [
   },
 ];
 
+/**
+ * Whether this program can be translated at all.
+ *
+ * A connector saying plain words about a program is spending their own
+ * credibility. Two of the five programs in the registry cannot support that
+ * today: one publishes no cost, schedule, or requirements, and one cannot be
+ * confirmed to be operating. The honest output for those is the refusal and the
+ * reason, not a smoother-sounding paragraph.
+ */
+export interface TranslationStatus {
+  canTranslate: boolean;
+  refusal?: string;
+  whatToSayInstead?: string;
+}
+
+export function translationStatus(program: Program): TranslationStatus {
+  const doNotRely = program.data_quality_flags.find((f) => f.severity === 'do_not_rely');
+  if (doNotRely) {
+    return {
+      canTranslate: false,
+      refusal: `${program.provider_short} cannot be confirmed to be running this right now. ${doNotRely.note}`,
+      whatToSayInstead:
+        'Do not send anyone here on your word. If you have heard good things about it, say that you have heard good things and that you are checking whether it is still going.',
+    };
+  }
+  if (!program.plain) {
+    const incomplete = program.data_quality_flags.find((f) => f.severity === 'incomplete');
+    return {
+      canTranslate: false,
+      refusal:
+        incomplete?.note ??
+        `${program.provider_short} has not published enough about this to say anything specific out loud.`,
+      whatToSayInstead: `Say "${program.provider_short} runs training in this and I do not know the details, let me get you the number." Then give them the number. Being the person who admits that is worth more than being the person who guessed.`,
+    };
+  }
+  return { canTranslate: true };
+}
+
+/**
+ * Programs meet in the evening or they do not, and the difference decides
+ * whether "night class" is a true thing to say.
+ */
+function classNoun(program: Program): string {
+  const joinable = program.cohorts.filter((c) => c.status !== 'already_started');
+  const timed = joinable.length > 0 ? joinable : program.cohorts;
+  const allEvening =
+    timed.length > 0 && timed.every((c) => /\b([5-9]|1[01]):\d{2}\s*pm/i.test(c.time));
+  return allEvening ? 'night class' : 'class';
+}
+
+function isOnline(program: Program): boolean {
+  return /online/i.test(program.format);
+}
+
 /** Beat one: the program in plain speech. */
 export interface PlainCard {
   whatItIs: string;
@@ -98,6 +158,8 @@ export interface PlainCard {
   whenItMeets: string;
   whatItCosts: string;
   whatYouNeed: string[];
+  /** The institutional sentences this card replaces, kept so it can be checked. */
+  translations: PlainTranslation[];
   whatUsuallyStopsPeople: string[];
   confirmWith: string;
   readOn: string;
@@ -115,7 +177,10 @@ export function buildPlainCard(
   program: Program,
   registry: ProgramRegistry,
   factIds: string[],
-): PlainCard {
+): PlainCard | null {
+  const plain = program.plain;
+  if (!plain || !translationStatus(program).canTranslate) return null;
+
   const cohort = nextJoinableCohort(program);
   const facts = SITUATION_FACTS.filter((f) => factIds.includes(f.id));
 
@@ -136,7 +201,7 @@ export function buildPlainCard(
 
   if (program.in_person_help) {
     whatUsuallyStopsPeople.push(
-      `The class is at night, but the office you have to call is only open on weekdays, ${program.in_person_help.hours.replace('Monday-Friday, ', '')}. If you work days, ask them for a time they can call you back.`,
+      `The ${classNoun(program)} is at night, but the office you have to call is only open on weekdays, ${program.in_person_help.hours.replace('Monday-Friday, ', '')}. If you work days, ask them for a time they can call you back.`,
     );
   }
 
@@ -147,9 +212,10 @@ export function buildPlainCard(
     );
   }
 
-  if (/online/i.test(program.format)) {
+  if (isOnline(program)) {
+    const hours = cohort ? sessionHours(cohort.time) : 'three';
     whatUsuallyStopsPeople.push(
-      `It is online and live, so you need a computer and internet that holds up for three hours. A phone is not enough. Nobody says this out loud, and it ends more attempts than anything else on this list.`,
+      `It is online and live, so you need a computer and internet that holds up for ${hours} hours at a stretch. A phone is not enough. Nobody says this out loud, and it ends more attempts than anything else on this list.`,
     );
   }
 
@@ -160,8 +226,8 @@ export function buildPlainCard(
   }
 
   return {
-    whatItIs: `A night class at ${program.provider_short} that trains you for help desk work. That is the person people call when their computer or their login stops working.`,
-    whatYouGet: `A certificate from the college, and you are set up to take the Google IT Support test.`,
+    whatItIs: `A ${classNoun(program)} at ${program.provider_short} that trains you for ${plain.job_said_out_loud}. That is ${plain.the_job_is}.`,
+    whatYouGet: plain.what_you_get,
     whenItMeets: cohort
       ? `${cohort.days.replace(' / ', ' and ')} nights, ${cohort.time}, online. The next one starts ${longDate(cohort.start_date)}.`
       : 'No start date is posted right now.',
@@ -172,12 +238,45 @@ export function buildPlainCard(
     whatYouNeed: program.requirements
       .filter((r) => r.kind !== 'payment' && !r.conditional)
       .map((r) => plainRequirement(r.label)),
+    translations: plain.translations,
     whatUsuallyStopsPeople,
     confirmWith: program.contacts[0]
       ? `${program.contacts[0].name}, ${program.contacts[0].phone ?? ''}`
       : program.provider,
     readOn: registry.registry_meta.fetched_at,
   };
+}
+
+/**
+ * "6:00 pm - 9:00 pm" spoken aloud. A script that reads a clock face out loud
+ * sounds like a script.
+ */
+function spokenTime(time: string): string {
+  const spoken: Record<string, string> = {
+    '6': 'six', '6:30': 'six thirty', '7': 'seven', '9': 'nine', '9:30': 'nine thirty',
+  };
+  const parts = time.match(/(\d{1,2})(?::(\d{2}))?\s*[ap]m/gi);
+  if (!parts || parts.length < 2) return time;
+  const key = (part: string) => {
+    const m = part.match(/(\d{1,2})(?::(\d{2}))?/);
+    if (!m) return part;
+    return m[2] && m[2] !== '00' ? `${m[1]}:${m[2]}` : m[1];
+  };
+  const from = spoken[key(parts[0])];
+  const to = spoken[key(parts[1])];
+  return from && to ? `${from} to ${to}` : time;
+}
+
+/** How long one session runs, for the device warning. */
+function sessionHours(time: string): string {
+  const parts = time.match(/(\d{1,2})(?::(\d{2}))?\s*[ap]m/gi);
+  if (!parts || parts.length < 2) return 'three';
+  const minutes = (part: string) => {
+    const m = part.match(/(\d{1,2})(?::(\d{2}))?/);
+    return m ? Number(m[1]) * 60 + Number(m[2] ?? 0) : 0;
+  };
+  const span = Math.round((minutes(parts[1]) - minutes(parts[0])) / 60);
+  return ['zero', 'one', 'two', 'three', 'four', 'five'][span] ?? String(span);
 }
 
 function plainRequirement(label: string): string {
@@ -191,9 +290,13 @@ function plainRequirement(label: string): string {
  * Beat two. Roughly two hundred words, which is about ninety seconds spoken,
  * ending in one ask rather than a list of things to do.
  */
-export function buildScript(program: Program, factIds: string[]): HallwayScript {
+export function buildScript(program: Program, factIds: string[]): HallwayScript | null {
+  const plain = program.plain;
+  if (!plain || !translationStatus(program).canTranslate) return null;
+
   const cohort = nextJoinableCohort(program);
   const has = (id: string) => factIds.includes(id);
+  const online = isOnline(program);
   const lines: string[] = [];
 
   // Composed slot by slot rather than appended, so that ticking two facts never
@@ -201,11 +304,11 @@ export function buildScript(program: Program, factIds: string[]): HallwayScript 
   // for a repeated sentence, and repetition is what makes a script sound like one.
 
   lines.push(
-    `There is a night class at ${program.provider_short} for help desk work. That is the job where people call you when their computer will not work.`,
+    `There is a ${classNoun(program)} at ${program.provider_short} for ${plain.job_said_out_loud}. That is ${plain.the_job_is}.`,
   );
 
   if (cohort) {
-    const when = `${cohort.days.replace(' / ', ' and ')} nights, six to nine, online`;
+    const when = `${cohort.days.replace(' / ', ' and ')} nights, ${spokenTime(cohort.time)}${online ? ', online' : ''}`;
     lines.push(
       has('works_days')
         ? `It runs ${when}, so you would not have to quit your job or drop a shift. The next one starts ${longDate(cohort.start_date)}.`
@@ -213,13 +316,13 @@ export function buildScript(program: Program, factIds: string[]): HallwayScript 
     );
   }
 
-  if (has('no_car') && !has('no_computer')) {
+  if (online && has('no_car') && !has('no_computer')) {
     lines.push(
       `You would not have to drive anywhere for it. You would need a computer and internet at home though, so let us make sure you have that.`,
     );
   }
 
-  if (has('no_computer')) {
+  if (online && has('no_computer')) {
     lines.push(
       `One catch. It is online and live, so you would need a computer and steady internet. A phone will not do it. Let us solve that part first.`,
     );
@@ -295,7 +398,7 @@ export function buildHandoffMessage(
   if (firstCall) {
     lines.push(`Call ${firstCall.name}, ${firstCall.phone ?? ''}.`);
     lines.push(
-      `Say: "I want to take a workforce training class at Jefferson State. Can you tell me if I qualify for help paying for it, what you need from me, and how long it takes?"`,
+      `Say: "I want to take a workforce training class at ${program.provider}. Can you tell me if I qualify for help paying for it, what you need from me, and how long it takes?"`,
     );
     lines.push(
       `Do that before you enroll. The college takes the money when you sign up, and this office is the one that decides about help paying.`,

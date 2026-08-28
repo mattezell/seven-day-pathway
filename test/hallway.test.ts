@@ -10,6 +10,7 @@ import {
   buildPlainCard,
   buildScript,
   readingGrade,
+  translationStatus,
 } from '../src/lib/hallway.ts';
 import type { ProgramRegistry, SyntheticProfile } from '../src/types.ts';
 
@@ -146,4 +147,88 @@ test('ticking two facts never makes the script repeat itself', () => {
 test('the script stays inside ninety seconds even with everything ticked', () => {
   const script = buildScript(program, SITUATION_FACTS.map((f) => f.id));
   assert.ok(script.estimatedSeconds <= 95, `${script.estimatedSeconds}s with all facts ticked`);
+});
+
+// The translation layer has to be a system rather than one hand-tuned program,
+// and the honest answer for a program nobody can describe has to be a refusal.
+
+test('every program either translates or refuses with something to say instead', () => {
+  for (const candidate of registry.programs) {
+    const status = translationStatus(candidate);
+    if (status.canTranslate) {
+      assert.ok(candidate.plain, `${candidate.id} claims to translate but has no plain block`);
+      assert.ok(buildScript(candidate, []), `${candidate.id} translates but produced no script`);
+      continue;
+    }
+    assert.ok(status.refusal, `${candidate.id} refuses without saying why`);
+    assert.ok(
+      status.whatToSayInstead,
+      `${candidate.id} refuses without giving the connector anything to say`,
+    );
+    assert.equal(buildScript(candidate, []), null);
+    assert.equal(buildPlainCard(candidate, registry, []), null);
+  }
+});
+
+test('a program flagged do_not_rely never produces words to say', () => {
+  const risky = registry.programs.find((p) =>
+    p.data_quality_flags.some((f) => f.severity === 'do_not_rely'),
+  )!;
+  assert.equal(translationStatus(risky).canTranslate, false);
+  assert.equal(buildScript(risky, []), null);
+});
+
+test('the reading level gate holds for every translatable program', () => {
+  const combinations = [
+    [],
+    ['money_tight'],
+    ['works_days', 'no_car'],
+    ['no_computer', 'no_diploma', 'veteran'],
+    SITUATION_FACTS.map((f) => f.id),
+  ];
+  for (const candidate of registry.programs) {
+    if (!translationStatus(candidate).canTranslate) continue;
+    for (const facts of combinations) {
+      const built = buildScript(candidate, facts)!;
+      const text = [...built.lines, built.theAsk].join(' ');
+      const grade = readingGrade(text);
+      assert.ok(
+        grade <= 9,
+        `${candidate.id} with ${facts.join('+') || 'nothing'} reads at grade ${grade.toFixed(1)}`,
+      );
+      assert.ok(
+        built.estimatedSeconds <= 120,
+        `${candidate.id} with ${facts.join('+') || 'nothing'} runs ${built.estimatedSeconds}s`,
+      );
+    }
+  }
+});
+
+test('each program is described as itself, not as the anchor program', () => {
+  const cyber = registry.programs.find((p) => p.id === 'JSCC-CYBER')!;
+  const script = buildScript(cyber, [])!.lines.join(' ');
+  assert.ok(script.includes('computer security work'));
+  assert.ok(!/help desk/i.test(script), 'the cyber script borrowed the help desk words');
+  assert.ok(script.includes('six thirty to nine thirty'), 'the later start time was not spoken');
+});
+
+test('every plain sentence carries the published sentence it replaces', () => {
+  for (const candidate of registry.programs) {
+    if (!candidate.plain) continue;
+    assert.ok(candidate.plain.translations.length > 0, `${candidate.id} translates nothing`);
+    for (const t of candidate.plain.translations) {
+      assert.ok(t.page_says.trim().length > 0);
+      assert.ok(t.you_say.trim().length > 0);
+      assert.equal(t.source_url, candidate.program_url);
+      const grade = readingGrade(t.you_say);
+      assert.ok(grade <= 9, `${candidate.id} plain line reads at grade ${grade.toFixed(1)}`);
+    }
+  }
+});
+
+test('the handoff message names the provider it actually belongs to', () => {
+  const cyber = registry.programs.find((p) => p.id === 'JSCC-CYBER')!;
+  const message = buildHandoffMessage(cyber, registry, [], byId('PROF-04'));
+  assert.ok(message.includes(cyber.provider));
+  assert.ok(message.includes('Cyber Security'));
 });

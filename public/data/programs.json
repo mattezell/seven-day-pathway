@@ -110,6 +110,33 @@
         "source_quote": "Monday-Friday, 8:00 a.m.-4:30 p.m.",
         "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/computer-technician-with-comptia-a-certification-prep/"
       },
+      "plain": {
+        "job_said_out_loud": "help desk work",
+        "the_job_is": "the job where people call you when their computer or their login will not work",
+        "what_you_get": "A certificate from the college, and you are set up to go take the Google IT Support test.",
+        "translations": [
+          {
+            "page_says": "ONLINE - LIVE INSTRUCTION",
+            "you_say": "You do it from home, but at a set time, with a teacher live on the screen. It is not something you click through on your own whenever you get a minute.",
+            "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/it-help-desk-with-google-it-support-desk/"
+          },
+          {
+            "page_says": "a government issued ID and diploma/transcript or GED in ENGLISH",
+            "you_say": "Bring a photo ID, and proof you finished high school. A diploma, a transcript, or a GED all count.",
+            "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/it-help-desk-with-google-it-support-desk/"
+          },
+          {
+            "page_says": "pay online at the time of enrollment",
+            "you_say": "You pay the day you sign up. Not later, not in pieces. So if you need help with the money, that call comes first.",
+            "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/it-help-desk-with-google-it-support-desk/"
+          },
+          {
+            "page_says": "Students with occupational diplomas must take the Accuplacer Reading exam.",
+            "you_say": "If your high school diploma was the occupational kind, there is a short reading test first. Most people do not need it. Ask, do not assume.",
+            "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/it-help-desk-with-google-it-support-desk/"
+          }
+        ]
+      },
       "data_quality_flags": [
         {
           "id": "JSCC-ITHD-DQ-01",
@@ -216,6 +243,43 @@
         ],
         "source_quote": "Monday-Friday, 8:00 a.m.-4:30 p.m.",
         "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/computer-technician-with-comptia-a-certification-prep/"
+      },
+      "plain": {
+        "job_said_out_loud": "fixing computers",
+        "the_job_is": "the job where you are the one who opens the machine up, or gets everybody's desk working",
+        "what_you_get": "A certificate from the college, and after that you can go sit for the A+ test. That test costs extra.",
+        "translations": [
+          {
+            "page_says": "ONLINE - LIVE INSTRUCTION",
+            "you_say": "You do it from home, but at a set time, with a teacher live on the screen. It is not something you click through on your own whenever you get a minute.",
+            "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/computer-technician-with-comptia-a-certification-prep/"
+          },
+          {
+            "page_says": "Upon successful completion of the course students will be awarded a Certificate of Completion from Jefferson State Community College, and students will have the option of sitting for the CompTIA A+ certification.",
+            "you_say": "You finish with a certificate from the college. Then you can go take the A+ test, which is the one employers actually ask about.",
+            "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/computer-technician-with-comptia-a-certification-prep/"
+          },
+          {
+            "page_says": "Exams are not included in registration fee.",
+            "you_say": "The A+ test itself is not in the price. It costs extra, on top of the class. Ask what it runs before you count the money.",
+            "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/computer-technician-with-comptia-a-certification-prep/"
+          },
+          {
+            "page_says": "No previous computer experience is required.",
+            "you_say": "You do not need to know anything about computers to start. They teach it from zero.",
+            "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/computer-technician-with-comptia-a-certification-prep/"
+          },
+          {
+            "page_says": "a government issued ID and diploma/transcript or GED in ENGLISH",
+            "you_say": "Bring a photo ID, and proof you finished high school. A diploma, a transcript, or a GED all count.",
+            "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/computer-technician-with-comptia-a-certification-prep/"
+          },
+          {
+            "page_says": "pay online at the time of enrollment",
+            "you_say": "You pay the day you sign up. Not later, not in pieces. So if you need help with the money, that call comes first.",
+            "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/computer-technician-with-comptia-a-certification-prep/"
+          }
+        ]
       }
     },
     {
@@ -313,6 +377,28 @@
         ],
         "source_quote": "Monday-Friday, 8:00 a.m.-4:30 p.m.",
         "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/computer-technician-with-comptia-a-certification-prep/"
+      },
+      "plain": {
+        "job_said_out_loud": "computer security work",
+        "the_job_is": "the job where you are the one watching for people trying to break into a company's systems",
+        "what_you_get": "A certificate from the college in cyber security.",
+        "translations": [
+          {
+            "page_says": "ONLINE - LIVE INSTRUCTION",
+            "you_say": "You do it from home, but at a set time, with a teacher live on the screen. It is not something you click through on your own whenever you get a minute.",
+            "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/cyber-security/"
+          },
+          {
+            "page_says": "a government issued ID and diploma/transcript or GED in ENGLISH",
+            "you_say": "Bring a photo ID, and proof you finished high school. A diploma, a transcript, or a GED all count.",
+            "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/cyber-security/"
+          },
+          {
+            "page_says": "pay online at the time of enrollment",
+            "you_say": "You pay the day you sign up. Not later, not in pieces. So if you need help with the money, that call comes first.",
+            "source_url": "https://www.jeffersonstate.edu/academics/fast-track/information-technology-academy/cyber-security/"
+          }
+        ]
       }
     },
     {
