@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { ConnectorBrief, ProgramRegistry, SevenDayPlan } from '../types';
 import { STALE_AFTER_DAYS, briefToText, contactLine } from '../lib/planner';
+import FundingDoors from './FundingDoors';
 
 function Receipt({ quote, url }: { quote?: string; url?: string }) {
   if (!quote && !url) return null;
@@ -149,6 +150,10 @@ export default function ConnectorView({
             </p>
           </div>
         </section>
+      )}
+
+      {plan.recommendedOption && (
+        <FundingDoors program={plan.recommendedOption.program} registry={registry} />
       )}
 
       {brief.coaching.length > 0 && (

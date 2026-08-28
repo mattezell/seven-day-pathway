@@ -127,20 +127,48 @@ export interface OrderingConstraint {
   source_quotes: string[];
 }
 
+/** A group a funding path exists to serve. Never a claim that anyone qualifies. */
+export interface FundingAudience {
+  group: string;
+  why: string;
+  source_quote?: string;
+  source_url?: string;
+}
+
 export interface FundingPath {
   id: string;
   name: string;
   full_name: string;
+  administered_by?: string;
   covers: string;
   determined_by: string;
   determined_by_source_quote: string;
   source_url: string;
-  ordering_constraint: OrderingConstraint;
+  /** Only the path that must precede enrolment carries this. */
+  ordering_constraint?: OrderingConstraint;
   contacts: Contact[];
-  counties_served: string[];
-  counties_source_quote: string;
+  counties_served?: string[];
+  counties_source_quote?: string;
   unknowns: string[];
   fetched_at: string;
+  confidence?: 'verified' | 'confirm_before_relying';
+  provenance_note?: string;
+  why_it_matters_here?: string;
+  how_to_start?: string;
+  who_it_is_for?: FundingAudience[];
+  conditions?: string[];
+  extra_contacts_note?: string;
+}
+
+/**
+ * Something the person volunteered about themselves that opens a door. These are
+ * disclosures a connector already holds in conversation, never stored anywhere,
+ * and they surface doors rather than determine eligibility.
+ */
+export interface Disclosure {
+  id: string;
+  label: string;
+  opensPaths: string[];
 }
 
 export interface RegistryMeta {
@@ -239,6 +267,7 @@ export interface CredibilityRisk {
  */
 export interface ConnectorBrief {
   canSay: ConfidentFact[];
+  fundingPaths: FundingPath[];
   cannotPromise: Caution[];
   handoffStep: PlanStep | null;
   coaching: string[];

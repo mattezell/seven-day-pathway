@@ -80,7 +80,11 @@
         }
       ],
       "funding_paths": [
-        "WIOA-CAREERCENTER"
+        "WIOA-CAREERCENTER",
+        "ACCS-PATHWAYS",
+        "JSCC-CAREERPATHWAYS",
+        "ADRS-VRS",
+        "SNAP-ET"
       ],
       "contacts": [
         {
@@ -181,7 +185,11 @@
         }
       ],
       "funding_paths": [
-        "WIOA-CAREERCENTER"
+        "WIOA-CAREERCENTER",
+        "ACCS-PATHWAYS",
+        "JSCC-CAREERPATHWAYS",
+        "ADRS-VRS",
+        "SNAP-ET"
       ],
       "contacts": [
         {
@@ -271,7 +279,11 @@
         }
       ],
       "funding_paths": [
-        "WIOA-CAREERCENTER"
+        "WIOA-CAREERCENTER",
+        "ACCS-PATHWAYS",
+        "JSCC-CAREERPATHWAYS",
+        "ADRS-VRS",
+        "SNAP-ET"
       ],
       "contacts": [
         {
@@ -321,7 +333,10 @@
       "cohorts": [],
       "requirements": [],
       "funding_paths": [
-        "WIOA-CAREERCENTER"
+        "WIOA-CAREERCENTER",
+        "ACCS-PATHWAYS",
+        "ADRS-VRS",
+        "SNAP-ET"
       ],
       "contacts": [
         {
@@ -429,6 +444,12 @@
           "email": "info@centralsix.org",
           "address": "15 Richard Arrington Jr Blvd N, Birmingham, AL 35203",
           "url": "https://centralsix.org/"
+        },
+        {
+          "role": "State workforce department, general line",
+          "name": "Alabama Department of Workforce",
+          "phone": "(334) 309-9000",
+          "url": "https://wioa-alabama.org/adult-program/"
         }
       ],
       "counties_served": [
@@ -443,7 +464,168 @@
       "unknowns": [
         "How long an eligibility determination takes is not published. This is the single largest unknown in any plan that depends on funding, and every plan this project generates says so out loud rather than guessing a number."
       ],
-      "fetched_at": "2026-08-28T10:20:00-05:00"
+      "fetched_at": "2026-08-28T10:20:00-05:00",
+      "administered_by": "Alabama Career Centers, under the Alabama Department of Workforce",
+      "confidence": "verified",
+      "how_to_start": "Call a Career Center and ask to begin an eligibility determination for training assistance.",
+      "who_it_is_for": [
+        {
+          "group": "People with low income, or receiving public assistance",
+          "why": "Priority for training services goes to these groups by federal requirement.",
+          "source_quote": "priority to eligible low income and welfare recipients and to certain veterans or veteran spouses to receive specific services",
+          "source_url": "https://wioa-alabama.org/adult-program/"
+        },
+        {
+          "group": "Veterans and eligible spouses",
+          "why": "Veterans and eligible spouses receive priority of service by law, and a veteran who is also low-income or receiving public assistance is placed in the first priority group.",
+          "source_quote": "priority to eligible low income and welfare recipients and to certain veterans or veteran spouses to receive specific services",
+          "source_url": "https://wioa-alabama.org/adult-program/"
+        },
+        {
+          "group": "People who are basic skills deficient",
+          "why": "Named alongside low-income and public assistance recipients in the priority groups for training services.",
+          "source_url": "https://wioa-alabama.org/adult-program/"
+        }
+      ],
+      "extra_contacts_note": "The Alabama Department of Workforce general line is (334) 309-9000."
+    },
+    {
+      "id": "ACCS-PATHWAYS",
+      "name": "Pathways to Prosperity Scholarship",
+      "full_name": "Pathways to Prosperity Scholarship, Alabama Community College System and the Paths for Success Foundation",
+      "administered_by": "Alabama Community College System (ACCS) with the Paths for Success Foundation",
+      "covers": "Up to $4,500 toward tuition, fees, books, credentialing fees, materials, and supplies for a short-term credential program",
+      "determined_by": "The Alabama Community College System scholarship program, not the college's workforce office",
+      "determined_by_source_quote": "Students must apply, receive approval, and agree to the scholarship terms and conditions.",
+      "source_url": "https://www.accs.edu/community-college/pathways-to-prosperity-scholarship/",
+      "confidence": "confirm_before_relying",
+      "provenance_note": "The official ACCS scholarship page did not render fully for direct quotation during the build window. The details below are a faithful summary of that page, read twice, but they are recorded as paraphrase rather than verbatim quotation. Confirm the current terms on the ACCS page before relying on any of it.",
+      "why_it_matters_here": "This is the only funding path found that could cover a Jefferson State Fast Track course outright. Fast Track is non-credit, and this scholarship explicitly covers non-credit short-term credential programs at Alabama Community College System institutions. Jefferson State is such an institution.",
+      "how_to_start": "Read the terms on the ACCS scholarship page, then ask the college's workforce education office how students apply for it alongside a Fast Track registration.",
+      "who_it_is_for": [
+        {
+          "group": "Alabama residents entering a short-term credential program",
+          "why": "The scholarship is for Alabama residents enrolling in a short-term credential program, for credit or non-credit, at an ACCS institution."
+        }
+      ],
+      "conditions": [
+        "The program must be completable in two semesters or less.",
+        "The program must align with an in-demand occupation identified by the Alabama Committee on Credentialing and Career Pathways for the region where the college sits.",
+        "A student may not receive another award until a calendar year after completing the program the prior funds paid for.",
+        "A post-completion survey is required."
+      ],
+      "contacts": [],
+      "unknowns": [
+        "Whether the IT Help Desk course specifically appears on the in-demand occupation list for this region is not something this project can determine. That determination belongs to the scholarship program.",
+        "Whether a course running from November into February counts as within two semesters is a question for the college."
+      ],
+      "fetched_at": "2026-08-28T11:15:00-05:00"
+    },
+    {
+      "id": "JSCC-CAREERPATHWAYS",
+      "name": "Career Pathways / IET tuition assistance",
+      "full_name": "Career Pathways / Integrated Education and Training, Jefferson State Adult Education",
+      "administered_by": "Jefferson State Community College Adult Education",
+      "covers": "Registration assistance for Adult Education students entering selected non-credit Fast Track programs",
+      "determined_by": "Jefferson State Adult Education staff",
+      "determined_by_source_quote": "Tuition assistance may be available for Adult Education students to assist with registration.",
+      "source_url": "https://www.jeffersonstate.edu/ged-preparation-adult-education/career-pathways/",
+      "confidence": "verified",
+      "why_it_matters_here": "This door is inside the same college that runs the course, and it is tied to Adult Education enrollment rather than to income alone. It is easy to miss because it sits on an adult education page rather than the Fast Track page.",
+      "how_to_start": "Ask to schedule a Career Pathways / IET orientation.",
+      "who_it_is_for": [
+        {
+          "group": "Adult Education students, including people working on a GED",
+          "why": "The assistance is described as available for Adult Education students entering selected non-credit Fast Track programs.",
+          "source_quote": "Career Pathways/IET allows qualifying students to benefit from activities related to workplace readiness, academic and career counseling, and academic preparation while enrolling in selected Non-Credit Fast Track programs.",
+          "source_url": "https://www.jeffersonstate.edu/ged-preparation-adult-education/career-pathways/"
+        }
+      ],
+      "contacts": [
+        {
+          "role": "Adult Education Instructor",
+          "name": "Laura Barnett",
+          "phone": "(205) 856-7953",
+          "url": "https://www.jeffersonstate.edu/ged-preparation-adult-education/career-pathways/"
+        },
+        {
+          "role": "Adult Education Training Specialist",
+          "name": "Charles Motley",
+          "phone": "(205) 856-7957",
+          "url": "https://www.jeffersonstate.edu/ged-preparation-adult-education/career-pathways/"
+        }
+      ],
+      "unknowns": [
+        "The page says assistance 'may be available' and does not define who qualifies. Only the Adult Education office can say.",
+        "Whether the IT Help Desk course is among the 'selected' Fast Track programs is not published."
+      ],
+      "fetched_at": "2026-08-28T11:15:00-05:00"
+    },
+    {
+      "id": "ADRS-VRS",
+      "name": "Vocational Rehabilitation Service",
+      "full_name": "Alabama Department of Rehabilitation Services, Vocational Rehabilitation Service",
+      "administered_by": "Alabama Department of Rehabilitation Services (ADRS)",
+      "covers": "Individualized employment services including educational services and job training. The state page lists the service categories but does not itemise what costs are paid.",
+      "determined_by": "An ADRS Vocational Rehabilitation counselor",
+      "determined_by_source_quote": "To be eligible for VRS services, individuals must: Be an Alabama resident; Have a physical or mental impairment that is a substantial impediment to employment; Must be able to benefit from services in terms of going to work.",
+      "source_url": "https://www.rehab.alabama.gov/services/vr/vr",
+      "confidence": "verified",
+      "why_it_matters_here": "A disability that makes work harder is common and often undisclosed. This door is worth naming out loud precisely because people do not volunteer it, and because eligibility here does not turn on income.",
+      "how_to_start": "Contact a local VRS office, or call the ADRS state office and ask for Vocational Rehabilitation Service.",
+      "who_it_is_for": [
+        {
+          "group": "People with a physical or mental impairment that is a substantial barrier to employment",
+          "why": "This is the eligibility test the state publishes, alongside Alabama residency and being able to benefit from services in terms of going to work.",
+          "source_quote": "Have a physical or mental impairment that is a substantial impediment to employment",
+          "source_url": "https://www.rehab.alabama.gov/services/vr/vr"
+        }
+      ],
+      "contacts": [
+        {
+          "role": "Statewide toll-free",
+          "name": "ADRS, ask for Vocational Rehabilitation Service",
+          "phone": "800-441-7607",
+          "url": "https://www.rehab.alabama.gov/services/vr/vr"
+        },
+        {
+          "role": "State office",
+          "name": "ADRS State Office",
+          "phone": "(334) 293-7500",
+          "url": "https://www.rehab.alabama.gov/services/vr/vr"
+        }
+      ],
+      "unknowns": [
+        "Whether tuition, fees, and books for a specific non-credit course are covered is not stated on the service page. An ADRS counselor decides what a given plan pays for."
+      ],
+      "fetched_at": "2026-08-28T11:15:00-05:00"
+    },
+    {
+      "id": "SNAP-ET",
+      "name": "SNAP Employment and Training",
+      "full_name": "Alabama SNAP Employment and Training, administered by the Alabama Department of Human Resources",
+      "administered_by": "Alabama Department of Human Resources (DHR)",
+      "covers": "Vocational and job training programs, plus supportive services including transportation and childcare",
+      "determined_by": "Alabama Department of Human Resources",
+      "determined_by_source_quote": "Vocational and job training programs",
+      "source_url": "https://dhr.alabama.gov/employment-and-training-program-3/",
+      "confidence": "confirm_before_relying",
+      "provenance_note": "The DHR pages found during the build window describe this program from the vendor and procurement side rather than from the participant side. No participant-facing enrollment page was located. The program is real and the service list is quoted from a state page, but how a person actually enrolls could not be verified, so it is recorded as unconfirmed.",
+      "why_it_matters_here": "The supportive services matter as much as the training money here. Transportation and childcare are the costs that quietly end a course in week three, and they are rarely covered by a training scholarship.",
+      "how_to_start": "Ask a county DHR office about Employment and Training for food assistance recipients.",
+      "who_it_is_for": [
+        {
+          "group": "People receiving SNAP food assistance",
+          "why": "The program serves food assistance recipients and includes vocational and job training alongside supportive services.",
+          "source_quote": "case management, transportation, childcare, and other participant expenses",
+          "source_url": "https://dhr.alabama.gov/employment-and-training-program-3/"
+        }
+      ],
+      "contacts": [],
+      "unknowns": [
+        "How a person enrolls, and whether the program is running with a vendor in Jefferson County right now, could not be confirmed from the pages found. Ask a county DHR office before relying on this."
+      ],
+      "fetched_at": "2026-08-28T11:15:00-05:00"
     }
   ]
 }

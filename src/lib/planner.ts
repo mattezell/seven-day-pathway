@@ -8,6 +8,8 @@
  */
 import type {
   AccessCollision,
+  Disclosure,
+  FundingPath,
   BarrierAssessment,
   BarrierKind,
   Caution,
@@ -425,12 +427,14 @@ export function buildSteps(
 
   const steps: PlanStep[] = [];
   const program = option.program;
-  const funding = registry.funding_paths.find((f) => program.funding_paths.includes(f.id));
+  const funding = fundingPathsFor(program, registry).find(
+    (f) => f.ordering_constraint?.rule === 'funding_before_enrollment',
+  );
   const hasMoneyBarrier = barriers.some((b) => b.barrier === 'upfront_cost');
   const push = (step: Omit<PlanStep, 'order'>) => steps.push({ ...step, order: steps.length + 1 });
 
   const costsMoney = typeof program.cost_usd === 'number' && program.cost_usd > 0;
-  if (funding && costsMoney && funding.ordering_constraint.rule === 'funding_before_enrollment') {
+  if (funding && costsMoney && funding.ordering_constraint) {
     const contact = funding.contacts[0];
     push({
       dayWindow: formatDayWindow(1, 1, { businessHoursOnly: true }),
@@ -447,8 +451,8 @@ export function buildSteps(
       confirmationQuestion:
         'Am I eligible for a WIOA training scholarship, what do you need from me, and how long will a determination take?',
       contact,
-      why: funding.ordering_constraint.why,
-      sourceQuotes: funding.ordering_constraint.source_quotes,
+      why: funding.ordering_constraint!.why,
+      sourceQuotes: funding.ordering_constraint!.source_quotes,
       sourceUrls: [funding.source_url],
       isConfirmationOnly: false,
     });
@@ -632,6 +636,25 @@ export function buildPlan(profile: SyntheticProfile, registry: ProgramRegistry):
   };
 }
 
+/** Every funding path attached to a program, in registry order. */
+export function fundingPathsFor(program: Program, registry: ProgramRegistry): FundingPath[] {
+  return registry.funding_paths.filter((f) => program.funding_paths.includes(f.id));
+}
+
+/**
+ * The disclosures a connector is likely to already hold, and which door each one
+ * opens. Nothing here is stored, transmitted, or used to decide anything. It only
+ * changes which doors are highlighted, because a connector who knows someone is a
+ * veteran should not have to read five funding paths to find the relevant one.
+ */
+export const DISCLOSURES: Disclosure[] = [
+  { id: 'low_income', label: 'Money is tight, or they receive public assistance', opensPaths: ['WIOA-CAREERCENTER'] },
+  { id: 'veteran', label: 'They are a veteran, or the spouse of one', opensPaths: ['WIOA-CAREERCENTER'] },
+  { id: 'snap', label: 'They receive SNAP food assistance', opensPaths: ['SNAP-ET'] },
+  { id: 'disability', label: 'A health condition or disability makes work harder', opensPaths: ['ADRS-VRS'] },
+  { id: 'adult_ed', label: 'They are working on a GED, or are in adult education', opensPaths: ['JSCC-CAREERPATHWAYS'] },
+];
+
 export function contactLine(contact: Contact): string {
   return [contact.phone, contact.email, contact.address].filter(Boolean).join(' | ');
 }
@@ -666,6 +689,22 @@ export function briefToText(
       lines.push(`${brief.handoffStep.contact.name}: ${contactLine(brief.handoffStep.contact)}`);
     }
     lines.push(`Ask exactly this: "${brief.handoffStep.confirmationQuestion}"`);
+  }
+
+  if (brief.fundingPaths.length > 0) {
+    lines.push('', 'WAYS PEOPLE PAY FOR THIS');
+    lines.push('These are doors to ask about. None of them is a promise, and each one is decided');
+    lines.push('by the office named, not by me.');
+    for (const path of brief.fundingPaths) {
+      const who = path.who_it_is_for?.map((a) => a.group).join('; ');
+      const phones = path.contacts.map((c) => `${c.name}: ${c.phone ?? ''}`.trim()).join(' | ');
+      lines.push(
+        `- ${path.name}${path.confidence === 'confirm_before_relying' ? ' (needs confirming)' : ''}: ${path.covers}.`,
+      );
+      if (who) lines.push(`  For: ${who}.`);
+      lines.push(`  Decided by: ${path.determined_by}.`);
+      if (phones) lines.push(`  Contact: ${phones}`);
+    }
   }
 
   if (brief.coaching.length > 0) {
@@ -839,6 +878,7 @@ export function buildConnectorBrief(
 
   return {
     canSay,
+    fundingPaths: fundingPathsFor(program, registry),
     cannotPromise,
     handoffStep: plan.steps[0] ?? null,
     coaching,

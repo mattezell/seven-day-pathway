@@ -7,6 +7,7 @@ import {
   briefToText,
   buildConnectorBrief,
   buildPlan,
+  DISCLOSURES,
   chooseRecommended,
   daysUntil,
   detectBarriers,
@@ -231,4 +232,61 @@ test('a conditional requirement reads as a sentence, not a mangled label', () =>
   const conditional = brief.cannotPromise.find((c) => /Accuplacer/i.test(c.claim))!;
   assert.equal(conditional.claim, 'Whether the Accuplacer Reading exam applies to them.');
   assert.match(conditional.because, /only if the applicant holds an occupational diploma/);
+});
+
+test('every funding path names who decides and carries a source', () => {
+  assert.ok(registry.funding_paths.length >= 5, 'expected several routes, not just WIOA');
+  for (const path of registry.funding_paths) {
+    assert.ok(path.determined_by.length > 0, `${path.id} must name the deciding office`);
+    assert.ok(path.source_url.startsWith('https://'), `${path.id} must cite a page`);
+    assert.ok(path.unknowns.length > 0, `${path.id} must state what it does not answer`);
+  }
+});
+
+test('funding paths that could not be fully verified say so', () => {
+  const unconfirmed = registry.funding_paths.filter((p) => p.confidence === 'confirm_before_relying');
+  assert.equal(unconfirmed.length, 2, 'Pathways to Prosperity and SNAP E&T were not fully verifiable');
+  for (const path of unconfirmed) {
+    assert.ok(
+      path.provenance_note && path.provenance_note.length > 40,
+      `${path.id} must explain how far the verification got`,
+    );
+  }
+});
+
+test('the ordering step still picks the path that declares the constraint', () => {
+  // Jefferson State now carries five funding paths; the plan must not grab the
+  // first one and lose the funding-before-enrollment rule.
+  const plan = buildPlan(byId('PROF-04'), registry);
+  assert.match(plan.steps[0].title, /\$999/);
+  assert.match(plan.steps[0].why, /payment online at the time of enrollment/);
+  assert.equal(plan.steps[0].contact?.name, 'Birmingham Career Center');
+});
+
+test('a disclosure opens a door without deciding anything', () => {
+  const veteran = DISCLOSURES.find((d) => d.id === 'veteran')!;
+  assert.deepEqual(veteran.opensPaths, ['WIOA-CAREERCENTER']);
+  const disability = DISCLOSURES.find((d) => d.id === 'disability')!;
+  assert.deepEqual(disability.opensPaths, ['ADRS-VRS']);
+  // Every path a disclosure points at must actually exist in the registry.
+  for (const d of DISCLOSURES) {
+    for (const id of d.opensPaths) {
+      assert.ok(
+        registry.funding_paths.some((p) => p.id === id),
+        `disclosure ${d.id} points at missing path ${id}`,
+      );
+    }
+  }
+});
+
+test('the shareable text carries the funding doors and their deciding offices', () => {
+  const plan = buildPlan(byId('PROF-04'), registry);
+  const brief = buildConnectorBrief(plan, registry)!;
+  const text = briefToText(brief, byId('PROF-04'), registry);
+
+  assert.match(text, /WAYS PEOPLE PAY FOR THIS/);
+  assert.match(text, /Pathways to Prosperity/);
+  assert.match(text, /needs confirming/, 'unverified paths must be marked in the forwarded text');
+  assert.match(text, /Decided by:/);
+  assert.ok(!/you qualify|you are eligible/i.test(text), 'must never assert eligibility');
 });
